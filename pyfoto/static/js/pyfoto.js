@@ -2,6 +2,18 @@
  * Created by chris on 8/22/2015.
  */
 
+function removeByValue(arr) {
+    var what, a = arguments, L = a.length, ax;
+    while (L > 1 && arr.length) {
+        what = a[--L];
+        while ((ax= arr.indexOf(what)) !== -1) {
+            arr.splice(ax, 1);
+        }
+    }
+    return arr;
+}
+
+
 var pyfotoApp = angular.module('pyfotoApp', []);
 
 
@@ -11,14 +23,22 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     $scope.currentName = "";
     $scope.currentTags = [];
     $scope.currentSeries = [];
+    $scope.availTags = [];
+
+    $scope.tags = [];
 
     $scope.update = function(response){
-        console.log(response);
         $scope.currentID = response.data[0].id;
         $scope.currentImage = "/item/" + response.data[0].path;
         $scope.currentName = response.data[0].filename;
         $scope.currentTags = response.data[0].tags;
         $scope.currentSeries = response.data[0].series;
+        $scope.availTags = [];
+        angular.forEach($scope.tags, function(value){
+            if($scope.currentTags.indexOf(value) == -1){
+                $scope.availTags.push(value);
+            }
+        });
         $scope.$apply();
     };
 
@@ -45,7 +65,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         $scope.prevItem = function(){
         $http.get("/prev/" + $scope.currentID + "?count=1")
             .success(function (response) {
-                console.log(response);
                 if (response.data.length == 0){
                     return false;
                 } else {
@@ -69,6 +88,16 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
 
     };
 
+    $scope.allTags = function(){
+        $http.get("/tag")
+            .success(function (response) {
+                angular.forEach(response.data, function(value){
+                   $scope.tags.push(value);
+                });
+                console.log($scope.tags);
+            });
+    };
+
 
     $scope.keyHandler = function(e){
         if(e.keyCode === 39) {
@@ -89,5 +118,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
 
 
     $scope.starts();
+    $scope.allTags();
 
 }]);

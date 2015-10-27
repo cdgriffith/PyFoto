@@ -57,6 +57,13 @@ def add_tag_to_file(file_id, tag, db):
             db.commit()
     return {}
 
+@app.route("/tag")
+def view_tags(db):
+    tags = db.query(Tag).all()
+    tag_list = []
+    for tag in tags:
+        tag_list.append(tag.tag)
+    return {"data": tag_list}
 
 @app.route("/tag/<tag>", method="POST")
 def add_tag_route(tag, db):

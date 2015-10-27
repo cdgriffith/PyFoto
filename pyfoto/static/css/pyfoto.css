@@ -31,6 +31,7 @@ body {
     border-radius:5px;
     padding: 1px 4px;
     margin: 3px;
+    display:inline-block;
 }
 
 .add-tag {
@@ -49,6 +50,9 @@ body {
 }
 
 .tag-cloud {
+    margin: 2px;
+    padding: 0px;
     width: 100%;
     word-wrap: normal;
 }
+

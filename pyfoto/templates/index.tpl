@@ -15,6 +15,11 @@
                 <h4 class="header">Tags</h4>
                 <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag"></span>
             </div>
+            <div class="tag-cloud">
+                <h5 class="header">Available</h5>
+                <span ng-repeat="tag in availTags" class="tag" ng-bind="tag"></span>
+            </div>
+
             <div class="add-tag">
                 <form ng-submit="addTagToFile()" class="form-inline">
                      <div class="form-group">
