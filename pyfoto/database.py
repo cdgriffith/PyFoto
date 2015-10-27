@@ -12,15 +12,6 @@ tag_association_table = Table('tag_association', Base.metadata,
                               Column('tag_id', Integer, ForeignKey('tags.id')))
 
 
-class Config(Base):
-
-    __tablename__ = 'config'
-
-    id = Column(Integer, primary_key=True)
-    key = Column(String)
-    value = Column(String)
-
-
 class File(Base):
 
     __tablename__ = 'files'
@@ -32,6 +23,7 @@ class File(Base):
     size = Column(Integer)
     type = Column(String)
     filename = Column(String)
+    series = Column(String, default="")
 
     tags = relationship("Tags", secondary=tag_association_table)
 
