@@ -11,6 +11,7 @@ import reusables
 
 from organizer import Organize
 from sqlalchemy import create_engine
+from sqlalchemy.orm.exc import NoResultFound
 from database import File, Tag, Series, Base
 from config import get_config, default_config
 
@@ -25,6 +26,7 @@ bottle.TEMPLATE_PATH.append(os.path.join(root, "templates"))
 
 app.settings = {}
 
+
 # noinspection PyUnresolvedReferences
 @app.route("/static/<filename:path>")
 def static_file(filename, db):
@@ -34,7 +36,7 @@ def static_file(filename, db):
 
 # noinspection PyUnresolvedReferences
 @app.route("/item/<filename:path>")
-def static_file(filename):
+def static_file(filename, db):
     if filename.startswith(app.settings.storage_directory):
         filename = filename[len(app.settings.storage_directory) + 1:]
     return bottle.static_file(filename=filename,
@@ -53,16 +55,45 @@ def prepare_file_items(query_return, settings):
     return {"data": item_list}
 
 
-@app.route("/next/<item_id>/<count>")
-def next_items(item_id, count, db):
-    items = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id)).limit(int(count))
-    return prepare_file_items(items, app.settings)
+def filter_options(query, options, db):
+    if options.get("tag"):
+        tag = db.query(Tag).filter(Tag.tag == options['tag']).one()
+        query = query.filter(File.tag.contains(tag))
+    if options.get("series"):
+        series = db.query(Series).filter(Series.name == options['series']).one()
+        query = query.filter(File.series.contains(series))
+    return query
 
 
-@app.route("/prev/<item_id>/<count>")
-def prev_items(item_id, count, db):
-    items = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id)).limit(int(count))
-    return prepare_file_items(items, app.settings)
+@app.route("/next/<item_id>")
+def next_items(item_id, db):
+    options = bottle.request.query.decode()
+
+    query = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id))
+    try:
+        query = filter_options(query, options, db)
+    except NoResultFound:
+        return {"data": []}
+
+    query = query.limit(1 if not options.get("count") else int(options['count']))
+
+    return prepare_file_items(query, app.settings)
+
+
+@app.route("/prev/<item_id>")
+def prev_items(item_id, db):
+    options = bottle.request.query.decode()
+
+    query = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id))
+
+    try:
+        query = filter_options(query, options, db)
+    except NoResultFound:
+        return {"data": []}
+
+    query = query.limit(1 if not options.get("count") else int(options['count']))
+
+    return prepare_file_items(query, app.settings)
 
 
 @app.route("/", method="GET")
@@ -90,12 +121,12 @@ def main():
     engine = create_engine(app.settings.connect_string, echo=True)
 
     plugin = sqlalchemy.Plugin(
-    engine, # SQLAlchemy engine created with create_engine function.
-    Base.metadata, # SQLAlchemy metadata, required only if create=True.
-    keyword='db', # Keyword used to inject session database in a route (default 'db').
-    create=True, # If it is true, execute `metadata.create_all(engine)` when plugin is applied (default False).
-    commit=True, # If it is true, plugin commit changes after route is executed (default True).
-    use_kwargs=False # If it is true and keyword is not defined, plugin uses **kwargs argument to inject session database (default False).
+        engine,
+        Base.metadata,
+        keyword='db',
+        create=True,
+        commit=True,
+        use_kwargs=False
     )
 
     app.install(plugin)
