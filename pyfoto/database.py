@@ -28,7 +28,7 @@ class File(Base):
     tags = relationship("Tags", secondary=tag_association_table)
 
 
-class Tags(Base):
+class Tag(Base):
 
     __tablename__ = 'tags'
 

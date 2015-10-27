@@ -58,3 +58,4 @@ target/
 *.sqlite
 storage/
 *.yaml
+*.json

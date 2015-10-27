@@ -4,7 +4,7 @@
 import os
 import logging
 
-import json
+import yaml
 import reusables
 
 logger = logging.getLogger("PyFoto")
@@ -27,19 +27,19 @@ default_config = dict(
 )
 
 
-def get_config(config_file="config.json"):
+def get_config(config_file="config.yaml"):
     config = default_config.copy()
 
     if os.path.exists(config_file):
         with open(config_file) as f:
-            config.update(json.load(f))
+            config.update(yaml.load(f))
     logger.info("Loaded config")
     logger.debug("Config - {0}".format(config))
 
     return reusables.Namespace(**config)
 
 
-def save_config(config, config_file="config.json"):
+def save_config(config, config_file="config.yaml"):
     with open(config_file, "w") as f:
-        json.dump(config, f, indent=4)
+        yaml.dump(config, f, default_flow_style=False)
     logger.info("Saved config")
