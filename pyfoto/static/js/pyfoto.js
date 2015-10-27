@@ -9,14 +9,23 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     $scope.currentImage = "";
     $scope.currentID = 1;
     $scope.currentName = "";
+    $scope.currentTags = [];
+    $scope.currentSeries = [];
+
+    $scope.update = function(response){
+        console.log(response);
+        $scope.currentID = response.data[0].id;
+        $scope.currentImage = "/item/" + response.data[0].path;
+        $scope.currentName = response.data[0].filename;
+        $scope.currentTags = response.data[0].tags;
+        $scope.currentSeries = response.data[0].series;
+        $scope.$apply();
+    };
 
     $scope.starts = function(){
         $http.get("/search?count=1")
             .success(function (response) {
-                $scope.currentID = response.data[0].id;
-                $scope.currentImage = "/item/" + response.data[0].path;
-                $scope.currentName = response.data[0].filename;
-                $scope.$apply();
+                $scope.update(response);
             });
     };
 
@@ -27,10 +36,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                     return false;
                 }
                 else {
-                    $scope.currentID = response.data[0].id;
-                    $scope.currentImage = "/item/" + response.data[0].path;
-                    $scope.currentName = response.data[0].filename;
-                    $scope.$apply();
+                    $scope.update(response);
                 }
             })
 
@@ -43,14 +49,26 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 if (response.data.length == 0){
                     return false;
                 } else {
-                    $scope.currentID = response.data[0].id;
-                    $scope.currentImage = "/item/" + response.data[0].path;
-                    $scope.currentName = response.data[0].filename;
-                    $scope.$apply();
+                    $scope.update(response);
                 }
             })
+    };
+
+    $scope.addTagToFile = function(){
+        if ($scope.tagInput == "" || $scope.tagInput == undefined){
+            alert("You're an idiot");
+            return false;
+        }
+
+        $http.post("/file/" + $scope.currentID + "/tag/" + $scope.tagInput)
+        .success(function (response) {
+               $scope.currentTags.push($scope.tagInput);
+                $scope.tagInput = "";
+                //$scope.apply();
+            });
 
     };
+
 
     $scope.keyHandler = function(e){
         if(e.keyCode === 39) {
@@ -71,6 +89,5 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
 
 
     $scope.starts();
-    //$scope.getFolders();
 
 }]);

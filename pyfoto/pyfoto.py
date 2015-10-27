@@ -43,6 +43,59 @@ def static_file(filename, db):
                               root=app.settings.storage_directory)
 
 
+@app.route("/file/<file_id>/tag/<tag>", method="POST")
+def add_tag_to_file(file_id, tag, db):
+    options = bottle.request.query.decode()
+    tag = add_tag(tag, options, db)
+    try:
+        file = db.query(File).filter(File.id == int(file_id)).one()
+    except NoResultFound:
+        return bottle.abort(404, "file not found")
+    else:
+        if not (tag in file.tags):
+            file.tags.append(tag)
+            db.commit()
+    return {}
+
+
+@app.route("/tag/<tag>", method="POST")
+def add_tag_route(tag, db):
+    options = bottle.request.query.decode()
+    add_tag(tag, options, db)
+    return {}
+
+
+def add_tag(tag, options, db):
+    try:
+        tag_item = db.query(Tag).filter(Tag.tag == tag).one()
+    except NoResultFound:
+        tag_item = Tag(tag=tag, description=options.get("description", ""))
+        db.add(tag_item)
+        db.commit()
+
+    return tag_item
+
+
+@app.route("/series/<series>", method="POST")
+def add_series_route(series, db):
+    options = bottle.request.query.decode()
+    series = add_series(series, options, db)
+    return {}
+
+
+def add_series(series, options, db):
+    try:
+        series_item = db.query(Series).filter(Series.name == series).one()
+    except NoResultFound:
+        series_item = Series(name=series, description=options.get("description", ""),
+                             source=options.get("source", ""),
+                             url=options.get("url", ""))
+        db.add(series_item)
+        db.commit()
+    return series_item
+
+
+
 def prepare_file_items(query_return, settings):
     item_list = []
     for item in query_return:
@@ -50,7 +103,8 @@ def prepare_file_items(query_return, settings):
             path = os.path.join(settings.image_dir, item.path)
         else:
             path = os.path.join(settings.video_dir, item.path)
-        item_list.append({"id": item.id, "path": path, "filename": item.filename})
+        item_list.append({"id": item.id, "path": path, "filename": item.filename, "tags": [x.tag for x in item.tags],
+                          "series": [x.name for x in item.series]})
 
     return {"data": item_list}
 
