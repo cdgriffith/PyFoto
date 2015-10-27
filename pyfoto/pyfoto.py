@@ -40,7 +40,7 @@ def scan_dir(directory):
         dir_sub = os.path.join(base_dir, base[len(directory):]).strip(os.sep)
         logger.debug("Scanning {0}".format(base))
         for sub_dir in dirs:
-
+            pass
 
         for file in files:
             if is_filetype(file, 'pictures'):

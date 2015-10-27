@@ -3,3 +3,6 @@ video_dir: videos
 image_dir: images
 directory_name_structure: {increment}
 remove_source: false
+sql_type: sqlite
+sqlite_file: pyfoto.sqlite
+

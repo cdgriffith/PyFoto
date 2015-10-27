@@ -11,49 +11,43 @@ from sqlalchemy.orm import sessionmaker
 import yaml
 import reusables
 
-from .database import File, Tags
+from .database import File, Tags, Base
+from .config import get_config
 
 logger = logging.getLogger(__name__)
 
 
-def get_config(config_file="config.yaml"):
-    with open(config_file) as f:
-        return yaml.load(f)
-
-
 class Organize:
+    def __init__(self):
+        self.config = get_config()
 
-    images = reusables.exts.pictures
-    videos = reusables.exts.video
-    # TODO add {date}, {time}, {type}, {hash}, {size}
-    dir_names = "{increment}"
-    image_names = "{increment}.{ext}"
-    video_names = "{increment}.{ext}"
-    remove_source = False
-    folder_limit = 1000
-    ignore_duplicates = False
+        self.video_dir = (self.config['storage_directory'] if not self.config.get('video_sub_dir') else
+                          os.path.join(self.config['storage_directory'], self.config['video_sub_dir']))
 
+        self.image_dir = (self.config['storage_directory'] if not self.config.get('image_sub_dir') else
+                          os.path.join(self.config['storage_directory'], self.config['image_sub_dir']))
 
-    def __init__(self, config_file="config.yaml"):
-        self.config = get_config(config_file)
-        if not os.path.exists(self.config['storage_directory']):
-            os.makedirs(self.config['storage_directory'])
+        self.ensure_exists(self.video_dir)
+        self.ensure_exists(self.image_dir)
 
-        self.video_dir = (self.config['storage_directory'] if not self.config.get('video_dir') else
-                          os.path.join(self.config['storage_directory'], self.config['video_dir']))
-        self.image_dir = (self.config['storage_directory'] if not self.config.get('image_dir') else
-                          os.path.join(self.config['storage_directory'], self.config['image_dir']))
-        self.current_video_dir_int = 1
-        self.current_image_dir_int = 1
-        self.current_video_file_inc = 1
-        self.current_image_file_inc = 1
-        engine = create_engine('sqlite:///:memory:', echo=True)
+        engine = create_engine('sqlite:///{0}'.format(self.config['sqlite_file']), echo=True)
+        Base.metadata.create_all(engine, checkfirst=True)
         session = sessionmaker(bind=engine)
         self.session = session()
 
     @staticmethod
+    def ensure_exists(path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    @staticmethod
     def file_extension(file):
-        return file.rsplit(".", 1)[1]
+        ext = file.rsplit(".", 1)[1].lower()
+        if ext == "jpeg":
+            ext = "jpg"
+        if ext == "tiff":
+            ext = "tif"
+        return ext
 
     def file_info(self, file):
         sha256 = reusables.file_hash(file, "sha256")
@@ -62,46 +56,50 @@ class Organize:
 
         return sha256, ext, size
 
-    def file_hash(self, file):
-        return "hash"
-
-    def already_ingested(self, file):
-        return False
-
-    @staticmethod
-    def verify(file, ingest_path):
-        if reusables.file_hash(file, "sha256") == reusables.file_hash(ingest_path, "sha256"):
+    def already_ingested(self, sha256):
+        if self.session.query(File).filter(File.sha256 == sha256).all():
             return True
         return False
 
-    def ingest(self, file, ingest_path):
+    def ingest(self, file, ingest_path, sha256, file_type):
+        """Copy a file to the new location and verify it was copied completely with the hash"""
         shutil.copy(file, ingest_path)
-        if self.verify(file, ingest_path):
-            sha256, ext, size = self.file_info(ingest_path)
-            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size)
+        new_sha256, ext, size = self.file_info(ingest_path)
+
+        if new_sha256 == sha256:
+            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type)
             self.session.add(new_file)
             self.session.commit()
-            if self.remove_source:
+            if self.config.remove_source:
                 os.unlink(file)
         else:
             logger.error("File {0} did not copy correctly!".format(file))
             os.unlink(ingest_path)
 
     def add_images(self, directory):
-
-        for file in reusables.find_all_files_generator(directory, ext=self.images):
-            if not self.ignore_duplicates and self.already_ingested(file):
+        """Go through a directory for all image files and ingest them"""
+        for file in reusables.find_all_files_generator(directory, ext=self.config.images):
+            sha256, ext, size = self.file_info(file)
+            if not self.config.ignore_duplicates and self.already_ingested(sha256):
                 logger.warning("file already ingested")
                 continue
-            self.current_image_file_inc += 1
-            if self.current_image_file_inc > self.folder_limit:
-                self.current_image_file_inc = 0
-                self.current_image_dir_int += 1
+            self.config.image_dir_inc += 1
+            if self.config.image_file_inc > self.config.folder_limit:
+                self.config.image_file_inc = 0
+                self.config.image_dir_inc += 1
 
-            self.ingest(file, os.path.join(self.image_dir,
-                self.dir_names.format(increment=self.current_image_dir_int),
-                self.image_dir.format(increment=self.current_image_file_inc, ext=self.file_extension(file))))
+            ingest_folder = self.config.dir_names.format(increment=self.config.image_dir_inc)
+
+            if not os.path.exists(ingest_folder):
+                os.makedirs(ingest_folder, exist_ok=True)
+
+            ingest_path = os.path.join(ingest_folder,
+                                       self.config.image_names.format(increment=self.config.image_file_inc,
+                                                                      ext=ext,
+                                                                      hash=sha256,
+                                                                      size=size))
+
+            self.ingest(file, ingest_path, sha256, file_type="image")
 
     def add_videos(self, directory):
         pass
-
