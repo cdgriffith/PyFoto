@@ -11,8 +11,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 import reusables
 
-from .database import File, Tag, Base, Series
-from .config import get_config, save_config
+from database import File, Tag, Base, Series
+from config import get_config, save_config
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("PyFoto")
@@ -20,21 +20,16 @@ logger = logging.getLogger("PyFoto")
 
 class Organize:
 
-    def __init__(self, connect_string="sqlite:///pyfoto.sqlite"):
-        engine = create_engine(connect_string, echo=True)
+    def __init__(self, engine=None):
+        self.config = get_config()
+
+        if not engine:
+            engine = create_engine(self.config.connect_string, echo=True)
         Base.metadata.create_all(engine, checkfirst=True)
         self.session = sessionmaker(bind=engine)()
 
-        self.config = get_config()
-
-        self.video_dir = (self.config['storage_directory'] if not self.config.get('video_sub_dir') else
-                          os.path.join(self.config['storage_directory'], self.config['video_sub_dir']))
-
-        self.image_dir = (self.config['storage_directory'] if not self.config.get('image_sub_dir') else
-                          os.path.join(self.config['storage_directory'], self.config['image_sub_dir']))
-
-        self.ensure_exists(self.video_dir)
-        self.ensure_exists(self.image_dir)
+        self.ensure_exists(self.config.video_dir)
+        self.ensure_exists(self.config.image_dir)
         self.save_config()
 
     @staticmethod
@@ -59,6 +54,7 @@ class Organize:
         return sha256, ext, size
 
     def already_ingested(self, sha256):
+        """Determine if an item has already been ingested by comparing it to existing SHA256s"""
         if self.session.query(File).filter(File.sha256 == sha256).all():
             return True
         return False
@@ -66,7 +62,7 @@ class Organize:
     def ingest(self, file, ingest_path, sha256, file_type, series=""):
         """Copy a file to the new location and verify it was copied completely with the hash"""
 
-        full_path = os.path.join(self.image_dir if file_type == "image" else self.video_dir, ingest_path)
+        full_path = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, ingest_path)
 
         self.ensure_exists(os.path.dirname(full_path))
 

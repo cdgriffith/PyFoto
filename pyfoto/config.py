@@ -36,6 +36,12 @@ def get_config(config_file="config.yaml"):
     logger.info("Loaded config")
     logger.debug("Config - {0}".format(config))
 
+    config['video_dir'] = (config['storage_directory'] if not config.get('video_sub_dir') else
+                           os.path.join(config['storage_directory'], config['video_sub_dir']))
+
+    config['image_dir'] = (config['storage_directory'] if not config.get('image_sub_dir') else
+                           os.path.join(config['storage_directory'], config['image_sub_dir']))
+
     return reusables.Namespace(**config)
 
 
