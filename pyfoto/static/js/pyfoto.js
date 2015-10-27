@@ -6,49 +6,50 @@ var pyfotoApp = angular.module('pyfotoApp', []);
 
 
 pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $http) {
-    $scope.imageList = [];
-    $scope.currentDir = "";
-    $scope.currentDirPath = [];
-    $scope.folderList = [];
     $scope.currentImage = "";
-    $scope.listIndex = 0;
+    $scope.currentID = 1;
+    $scope.currentName = "";
 
-    $scope.getFolders = function(){
-            $http.get("/folder")
-                .success(function (response) {
-                    $scope.folderList = response.folders;
-                    console.log(response.folders);
-                });
-    };
-
-    $scope.getItems = function(folder){
-        $scope.currentDir = folder;
-            $http.get("/folder/"+ folder)
-                .success(function (response) {
-                    $scope.imageList = response.files;
-                    $scope.currentDirPath = response.path;
-                    $scope.currentImage = "/item/" + $scope.currentDir + "/" + $scope.imageList[0];
-                    $scope.listIndex = 0;
-        });
-    };
-
-    $scope.prevItem = function(){
-        $scope.listIndex--;
-        if ($scope.listIndex < 0){
-            $scope.listIndex = $scope.imageList.length - 1;
-        }
-        $scope.currentImage = "/item/" + $scope.currentDir + "/" + $scope.imageList[$scope.listIndex];
-        $scope.$apply();
+    $scope.starts = function(){
+        $http.get("/search?count=1")
+            .success(function (response) {
+                $scope.currentID = response.data[0].id;
+                $scope.currentImage = "/item/" + response.data[0].path;
+                $scope.currentName = response.data[0].filename;
+                $scope.$apply();
+            });
     };
 
     $scope.nextItem = function(){
-        $scope.listIndex++;
-        if ($scope.listIndex > $scope.imageList.length){
-            $scope.listIndex = 0;
-        }
+        $http.get("/next/" + $scope.currentID + "?count=1")
+            .success(function (response) {
+                if (response.data.length == 0){
+                    return false;
+                }
+                else {
+                    $scope.currentID = response.data[0].id;
+                    $scope.currentImage = "/item/" + response.data[0].path;
+                    $scope.currentName = response.data[0].filename;
+                    $scope.$apply();
+                }
+            })
 
-        $scope.currentImage = "/item/" + $scope.currentDir + "/" + $scope.imageList[$scope.listIndex];
-        $scope.$apply();
+    };
+
+        $scope.prevItem = function(){
+        $http.get("/prev/" + $scope.currentID + "?count=1")
+            .success(function (response) {
+                console.log(response);
+                if (response.data.length == 0){
+                    return false;
+                } else {
+                    $scope.currentID = response.data[0].id;
+                    $scope.currentImage = "/item/" + response.data[0].path;
+                    $scope.currentName = response.data[0].filename;
+                    $scope.$apply();
+                }
+            })
+
     };
 
     $scope.keyHandler = function(e){
@@ -69,10 +70,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     });
 
 
-    $scope.getFolders();
+    $scope.starts();
     //$scope.getFolders();
-
-
-
 
 }]);

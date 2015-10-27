@@ -96,9 +96,24 @@ def prev_items(item_id, db):
     return prepare_file_items(query, app.settings)
 
 
+@app.route("/search")
+def search(db):
+    options = bottle.request.query.decode()
+
+    query = db.query(File).order_by(File.id.asc())
+    try:
+        query = filter_options(query, options, db)
+    except NoResultFound:
+        return {"data": []}
+
+    query = query.limit(100 if not options.get("count") else int(options['count']))
+
+    return prepare_file_items(query, app.settings)
+
+
 @app.route("/", method="GET")
 @bottle.view("index")
-def index(db):
+def index():
     return {}
 
 
