@@ -8,15 +8,14 @@ import shutil
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import yaml
+from sqlalchemy.orm.exc import NoResultFound
 import reusables
 
-from .database import File, Tags, Base
+from .database import File, Tag, Base, Series
 from .config import get_config, save_config
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger("PyFoto")
-
 
 
 class Organize:
@@ -78,8 +77,16 @@ class Organize:
         new_sha256, ext, size = self.file_info(full_path)
 
         if new_sha256 == sha256:
-            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
-                            filename=os.path.basename(file), series=series)
+            if series:
+                try:
+                    sql_series = self.session.query(Series).filter(Series.name == series).one()
+                except NoResultFound:
+                    sql_series = Series(name=series)
+                new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
+                                filename=os.path.basename(file), series=[sql_series])
+            else:
+                new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
+                                filename=os.path.basename(file))
             self.session.add(new_file)
             if self.config.remove_source:
                 os.unlink(file)
@@ -97,12 +104,6 @@ class Organize:
             if not self.config.ignore_duplicates and self.already_ingested(sha256):
                 logger.warning("file {0} already ingested".format(file))
                 continue
-            self.config.image_file_inc += 1
-            if self.config.image_file_inc > self.config.folder_limit:
-                self.config.image_file_inc = 0
-                self.config.image_dir_inc += 1
-                self.session.commit()
-                self.save_config()
 
             ingest_folder = self.config.dir_names.format(increment=self.config.image_dir_inc)
 
@@ -112,7 +113,20 @@ class Organize:
                                                                       hash=sha256,
                                                                       size=size))
 
-            self.ingest(file, ingest_path, sha256, file_type="image", series=series)
+            try:
+                self.ingest(file, ingest_path, sha256, file_type="image", series=series)
+            except Exception as err:
+                self.save_config()
+                self.session.commit()
+                raise err
+
+            self.config.image_file_inc += 1
+            if self.config.image_file_inc > self.config.folder_limit:
+                self.config.image_file_inc = 0
+                self.config.image_dir_inc += 1
+                self.session.commit()
+                self.save_config()
+
         self.session.commit()
         self.save_config()
 
