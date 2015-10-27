@@ -31,6 +31,7 @@ class File(Base):
     extension = Column(String)
     size = Column(Integer)
     type = Column(String)
+    filename = Column(String)
 
     tags = relationship("Tags", secondary=tag_association_table)
 

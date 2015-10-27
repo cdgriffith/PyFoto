@@ -63,18 +63,24 @@ class Organize:
 
     def ingest(self, file, ingest_path, sha256, file_type):
         """Copy a file to the new location and verify it was copied completely with the hash"""
-        shutil.copy(file, ingest_path)
-        new_sha256, ext, size = self.file_info(ingest_path)
+
+        full_path = os.path.join(self.image_dir if file_type == "image" else self.video_dir, ingest_path)
+
+        self.ensure_exists(os.path.dirname(full_path))
+
+        shutil.copy(file, full_path)
+        new_sha256, ext, size = self.file_info(full_path)
 
         if new_sha256 == sha256:
-            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type)
+            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
+                            filename=os.path.basename(file))
             self.session.add(new_file)
             self.session.commit()
             if self.config.remove_source:
                 os.unlink(file)
         else:
             logger.error("File {0} did not copy correctly!".format(file))
-            os.unlink(ingest_path)
+            os.unlink(full_path)
 
     def add_images(self, directory):
         """Go through a directory for all image files and ingest them"""
@@ -83,15 +89,12 @@ class Organize:
             if not self.config.ignore_duplicates and self.already_ingested(sha256):
                 logger.warning("file already ingested")
                 continue
-            self.config.image_dir_inc += 1
+            self.config.image_file_inc += 1
             if self.config.image_file_inc > self.config.folder_limit:
                 self.config.image_file_inc = 0
                 self.config.image_dir_inc += 1
 
             ingest_folder = self.config.dir_names.format(increment=self.config.image_dir_inc)
-
-            if not os.path.exists(ingest_folder):
-                os.makedirs(ingest_folder, exist_ok=True)
 
             ingest_path = os.path.join(ingest_folder,
                                        self.config.image_names.format(increment=self.config.image_file_inc,
