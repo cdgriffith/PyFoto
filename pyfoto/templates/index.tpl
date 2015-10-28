@@ -11,7 +11,6 @@
 
     <div class="main-area" ng-controller="indexController">
 
-
         <div class="col-md-10" style="height: 100%">
 
             <div class="gallery">
@@ -21,10 +20,8 @@
             </div>
 
             <div class="main-image">
-                <img class="the-image" ng-src="{{currentImage}}" />
+                <img class="the-image" ng-click="nextItem()" ng-src="{{currentImage}}" />
             </div>
-
-
         </div>
 
         <div class="col-lg-2 col-sm-2 col-md-2 right-side">
