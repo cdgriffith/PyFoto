@@ -25,6 +25,7 @@ root = os.path.abspath(os.path.dirname(__file__))
 bottle.TEMPLATE_PATH.append(os.path.join(root, "templates"))
 
 app.settings = {}
+app.org = None
 
 
 # noinspection PyUnresolvedReferences
@@ -60,7 +61,15 @@ def add_tag_to_file(file_id, tag, db):
 
 @app.route("/file/ingest", method="POST")
 def ingest_files(db):
-    pass
+    options = bottle.request.query.decode()
+    if not options.get("directory") or not os.path.exists(options["directory"]):
+        return {"error": True}
+
+    if options.get("type") == "video":
+        app.org.add_videos(options["directory"])
+    else:
+        app.org.add_images(options["directory"])
+    return {"error": False}
 
 
 @app.route("/tag")
@@ -212,6 +221,8 @@ def main():
     )
 
     app.install(plugin)
+
+    app.org = Organize(engine)
 
     bottle.run(app, host=args.ip, port=args.port, server="cherrypy")
 
