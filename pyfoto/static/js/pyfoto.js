@@ -32,7 +32,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 $scope.availTags.push(value);
             }
         });
-        $scope.$apply();
+        //$scope.$apply();
     };
 
     $scope.removeCurrentTag = function(tag) {
@@ -47,18 +47,27 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 $scope.availTags.push(value);
             }
         });
-        $scope.$apply();
+        //$scope.$apply();
     };
 
     $scope.starts = function(){
-        $http.get("/search?count=1")
-            .success(function (response) {
-                $scope.update(response);
-            });
+            $http.get("/file")
+              .success(function (response) {
+                    console.log("response");
+                    $scope.toggleImage("off");
+                   $scope.galleryImages = response.data;
+                    $scope.currentFilters = $scope.searchInput;
+                    $scope.searchInput = "";
+                });
     };
 
     $scope.nextItem = function(){
-        $http.get("/next/" + $scope.currentID + "?count=1")
+        var url = "/next/" + $scope.currentID + "?count=1";
+        if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
+            url += "&search="+$scope.currentFilters;
+        }
+        console.log(url);
+        $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
                     return false;
@@ -70,7 +79,12 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     };
 
     $scope.prevItem = function(){
-        $http.get("/prev/" + $scope.currentID + "?count=1")
+        var url = "/prev/" + $scope.currentID + "?count=1";
+            if ($scope.currentFilters != ""  && $scope.currentFilters != undefined){
+                url += "&search="+$scope.currentFilters;
+            }
+
+        $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
                     return false;
@@ -132,15 +146,33 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         }
     };
 
+    $scope.toggleImage = function(way) {
+        if (way == "off"){
+            $(".main-image").hide();
+            $(".image-data").hide();
+            $(".gallery").show();
+        } else {
+            $(".main-image").show();
+            $(".image-data").show();
+            $(".gallery").hide();
+        }
+    };
+
 
     $scope.searchImages = function(){
         if ($scope.searchInput == "" || $scope.searchInput == undefined){
-            alert("Did you mean to hit enter? I don't think you did...");
-            return false;
+            $http.get("/file")
+              .success(function (response) {
+                    $scope.toggleImage("off");
+                   $scope.galleryImages = response.data;
+                    $scope.currentFilters = $scope.searchInput;
+                    $scope.searchInput = "";
+                });
         }
 
         $http.get("/search?search=" + $scope.searchInput)
         .success(function (response) {
+                $scope.toggleImage("off");
                $scope.galleryImages = response.data;
                 $scope.currentFilters = $scope.searchInput;
                 $scope.searchInput = "";
@@ -149,13 +181,15 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     };
 
     $scope.openImage = function(file_id){
+        console.log("Open image called for "+ file_id);
         $http.get("/file/" + file_id)
             .success(function (response) {
                 if (response.data.length == 0){
                     return false;
+
                 } else {
                     $scope.update(response);
-                    $("#main-image").show();
+                    $scope.toggleImage("on");
                 }
             })
     };
@@ -167,8 +201,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         $doc.off('keydown', $scope.keyHandler);
     });
 
-
-    //$scope.starts();
+    $scope.toggleImage("off");
+    $scope.starts();
     //$scope.allTags();
 
 }]);

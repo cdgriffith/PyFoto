@@ -24,7 +24,7 @@ class Organize:
         self.config = get_config()
 
         if not engine:
-            engine = create_engine(self.config.connect_string, echo=True)
+            engine = create_engine(self.config.connect_string)
         Base.metadata.create_all(engine, checkfirst=True)
         self.session = sessionmaker(bind=engine)()
 

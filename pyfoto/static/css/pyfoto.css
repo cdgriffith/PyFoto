@@ -28,7 +28,6 @@ body {
 .image-data{
     margin: 0;
     padding: 0;
-    display: none;
 }
 
 .tag {
@@ -70,9 +69,10 @@ body {
 .gallery-image {
     width: 150px;
     height: 150px;
-    background: 50% 50% no-repeat;
+    background-size: cover;
+    background: no-repeat center center;
+    float:left;
 }
 
 .main-image {
-    display: none;
 }

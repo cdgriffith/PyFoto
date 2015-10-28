@@ -44,6 +44,16 @@ def static_file(filename, db):
                               root=os.path.abspath(app.settings.storage_directory))
 
 
+@app.route("/file")
+def get_items(db):
+    options = bottle.request.query.decode()
+    try:
+        files = db.query(File).order_by(File.id.asc()).limit(options.get("count", 1000)).all()
+    except NoResultFound:
+        return {"data": []}
+    return prepare_file_items(files, app.settings)
+
+
 @app.route("/file/<file_id>")
 def get_item(file_id, db):
     try:
@@ -171,13 +181,11 @@ def fun_search(search, db):
 def next_items(item_id, db):
     options = bottle.request.query.decode()
 
-    query = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id))
-    try:
-        query = filter_options(query, options, db)
-    except NoResultFound:
-        return {"data": []}
-
-    query = query.limit(1 if not options.get("count") else int(options['count']))
+    if options.get("search"):
+        query = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id)).filter(File.tags.any(Tag.tag.in_(
+            options["search"].split(" ")))).limit(1 if not options.get("count") else int(options['count'])).all()
+    else:
+        query = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
 
@@ -186,14 +194,11 @@ def next_items(item_id, db):
 def prev_items(item_id, db):
     options = bottle.request.query.decode()
 
-    query = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id))
-
-    try:
-        query = filter_options(query, options, db)
-    except NoResultFound:
-        return {"data": []}
-
-    query = query.limit(1 if not options.get("count") else int(options['count']))
+    if options.get("search"):
+        query = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id)).filter(File.tags.any(Tag.tag.in_(
+            options["search"].split(" ")))).limit(1 if not options.get("count") else int(options['count'])).all()
+    else:
+        query = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
 
