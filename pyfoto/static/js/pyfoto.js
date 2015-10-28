@@ -2,17 +2,6 @@
  * Created by chris on 8/22/2015.
  */
 
-function removeByValue(arr) {
-    var what, a = arguments, L = a.length, ax;
-    while (L > 1 && arr.length) {
-        what = a[--L];
-        while ((ax= arr.indexOf(what)) !== -1) {
-            arr.splice(ax, 1);
-        }
-    }
-    return arr;
-}
-
 
 var pyfotoApp = angular.module('pyfotoApp', []);
 
@@ -42,6 +31,21 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         $scope.$apply();
     };
 
+    $scope.removeCurrentTag = function(tag) {
+        var index = $scope.currentTags.indexOf(tag);
+        $scope.currentTags.splice(index, 1);
+    };
+
+    $scope.updateAvailTags = function(){
+        $scope.availTags = [];
+        angular.forEach($scope.tags, function(value){
+            if($scope.currentTags.indexOf(value) == -1){
+                $scope.availTags.push(value);
+            }
+        });
+        $scope.$apply();
+    };
+
     $scope.starts = function(){
         $http.get("/search?count=1")
             .success(function (response) {
@@ -59,10 +63,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                     $scope.update(response);
                 }
             })
-
     };
 
-        $scope.prevItem = function(){
+    $scope.prevItem = function(){
         $http.get("/prev/" + $scope.currentID + "?count=1")
             .success(function (response) {
                 if (response.data.length == 0){
@@ -83,10 +86,26 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         .success(function (response) {
                $scope.currentTags.push($scope.tagInput);
                 $scope.tagInput = "";
-                //$scope.apply();
             });
+    };
+
+    $scope.modifyTag = function(tag, action){
+        if(action=='add'){
+            $http.post("/file/" + $scope.currentID + "/tag/" + tag)
+            .success(function (response) {
+                   $scope.currentTags.push(tag);
+                    $scope.updateAvailTags();
+                });
+        } else if (action == 'remove') {
+            $http.delete("/file/" + $scope.currentID + "/tag/" + tag)
+            .success(function (response) {
+                   $scope.removeCurrentTag(tag);
+                    $scope.updateAvailTags();
+                });
+        }
 
     };
+
 
     $scope.allTags = function(){
         $http.get("/tag")

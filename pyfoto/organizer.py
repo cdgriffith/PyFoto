@@ -127,5 +127,8 @@ class Organize:
         self.save_config()
 
 
-    def add_videos(self, directory):
+    def add_videos(self, directory, series=""):
         pass
+
+    def ingest_items(self, directory, item_type="images", series=""):
+        self.q.put((directory, item_type, series))

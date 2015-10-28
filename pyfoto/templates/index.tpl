@@ -13,11 +13,13 @@
         <div class="col-lg-2 col-sm-2 col-md-2 left-side">
             <div class="tag-cloud">
                 <h4 class="header">Tags</h4>
-                <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag"></span>
+                <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag"
+                      ng-click="modifyTag(tag, 'remove')"></span>
             </div>
             <div class="tag-cloud">
                 <h5 class="header">Available</h5>
-                <span ng-repeat="tag in availTags" class="tag" ng-bind="tag"></span>
+                <span ng-repeat="tag in availTags" class="tag" ng-bind="tag"
+                      ng-click="modifyTag(tag, 'add')"></span>
             </div>
 
             <div class="add-tag">
@@ -36,7 +38,7 @@
 
         <div class="col-lg-9 col-sm-8 col-md-9">
             <div class="main-image">
-                <img class="the-image" ng-src="{{'{{currentImage}}'}}" />
+                <img class="the-image" ng-src="{{currentImage}}" />
             </div>
         </div>
         <div class="col-lg-1 col-sm-2 col-md-1">

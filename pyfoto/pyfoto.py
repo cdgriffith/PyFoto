@@ -59,6 +59,18 @@ def add_tag_to_file(file_id, tag, db):
     return {}
 
 
+@app.route("/file/<file_id>/tag/<tag>", method="DELETE")
+def remove_tag_from_file(file_id, tag, db):
+    try:
+        tag_item = db.query(Tag).filter(Tag.tag == tag).one()
+        file_item = db.query(File).filter(File.id == file_id).one()
+    except NoResultFound:
+        return {"error": True}
+
+    file_item.tags.remove(tag_item)
+    return {"error": False}
+
+
 @app.route("/file/ingest", method="POST")
 def ingest_files(db):
     options = bottle.request.query.decode()
@@ -134,7 +146,7 @@ def prepare_file_items(query_return, settings):
 def filter_options(query, options, db):
     if options.get("tag"):
         tag = db.query(Tag).filter(Tag.tag == options['tag']).one()
-        query = query.filter(File.tag.contains(tag))
+        query = query.filter(File.tags.contains(tag))
     if options.get("series"):
         series = db.query(Series).filter(Series.name == options['series']).one()
         query = query.filter(File.series.contains(series))
@@ -188,7 +200,7 @@ def search(db):
 
 
 @app.route("/", method="GET")
-@bottle.view("index")
+@bottle.view("index", template_settings=dict(syntax="<% %> % [[ ]]"))
 def index():
     return {}
 
