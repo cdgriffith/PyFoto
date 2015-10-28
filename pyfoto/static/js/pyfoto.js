@@ -35,7 +35,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         });
         console.log($scope.availTags);
         console.log($scope.tags);
-        //$scope.$apply();
     };
 
     $scope.removeCurrentTag = function(tag) {
@@ -50,7 +49,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 $scope.availTags.push(value);
             }
         });
-        //$scope.$apply();
     };
 
     $scope.starts = function(){
@@ -170,7 +168,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                    $scope.galleryImages = response.data;
                     $scope.currentFilters = $scope.searchInput;
                     $scope.searchInput = "";
+                    history.pushState($scope.currentFilters, "search", "index.html");
                 });
+
         }
 
         $http.get("/search?search=" + $scope.searchInput)
@@ -187,8 +187,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         console.log("Open image called for "+ file_id);
         $http.get("/file/" + file_id)
             .success(function (response) {
-                if (response.data.length == 0){
-                    return false;
+                if (response.data == undefined || response.data.length == 0){
+                    alert("Cannot open file");
 
                 } else {
                     $scope.update(response);

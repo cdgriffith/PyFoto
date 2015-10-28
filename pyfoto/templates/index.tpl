@@ -18,8 +18,6 @@
                 <div class="gallery-image" ng-repeat="image in galleryImages"
                      ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
                         ng-click="openImage(image.id)"></div>
-
-
             </div>
 
             <div class="main-image">

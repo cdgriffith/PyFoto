@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Table, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import Column, Integer, String, Table, ForeignKey, PrimaryKeyConstraint, Boolean
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
@@ -30,6 +30,7 @@ class File(Base):
     type = Column(String)
     filename = Column(String)
     thumbnail = Column(String)
+    deleted = Column(Boolean)
 
     tags = relationship("Tag", secondary=tag_association_table)
     series = relationship("Series", secondary=series_association_table)

@@ -60,7 +60,23 @@ def get_item(file_id, db):
         file = db.query(File).filter(File.id == int(file_id)).one()
     except NoResultFound:
         return bottle.abort(404, "file not found")
-    return prepare_file_items([file], app.settings)
+    results = prepare_file_items([file], app.settings)
+    if not results:
+        return bottle.abort(404, "file not found")
+    return results
+
+
+@app.route("/file/<file_id>", method="DELETE")
+def delete_item(file_id, db):
+    try:
+        file = db.query(File).filter(File.id == int(file_id)).one()
+    except NoResultFound:
+        return bottle.abort(404, "file not found")
+
+    file.deleted = True
+    db.commit()
+
+    return {"error": False}
 
 
 @app.route("/file/<file_id>/tag/<tag>", method="POST")
@@ -152,6 +168,8 @@ def add_series(series, options, db):
 def prepare_file_items(query_return, settings):
     item_list = []
     for item in query_return:
+        if item.deleted:
+            continue
         if item.type == "image":
             path = os.path.join(settings.image_dir, item.path)
         else:
