@@ -39,8 +39,8 @@ def static_file(filename, db):
 def static_file(filename, db):
     if filename.startswith(app.settings.storage_directory):
         filename = filename[len(app.settings.storage_directory) + 1:]
-    return bottle.static_file(filename=filename,
-                              root=app.settings.storage_directory)
+    return bottle.static_file(filename,
+                              root=os.path.abspath(app.settings.storage_directory))
 
 
 @app.route("/file/<file_id>/tag/<tag>", method="POST")
@@ -57,6 +57,12 @@ def add_tag_to_file(file_id, tag, db):
             db.commit()
     return {}
 
+
+@app.route("/file/ingest", method="POST")
+def ingest_files(db):
+    pass
+
+
 @app.route("/tag")
 def view_tags(db):
     tags = db.query(Tag).all()
@@ -64,6 +70,7 @@ def view_tags(db):
     for tag in tags:
         tag_list.append(tag.tag)
     return {"data": tag_list}
+
 
 @app.route("/tag/<tag>", method="POST")
 def add_tag_route(tag, db):
@@ -100,7 +107,6 @@ def add_series(series, options, db):
         db.add(series_item)
         db.commit()
     return series_item
-
 
 
 def prepare_file_items(query_return, settings):

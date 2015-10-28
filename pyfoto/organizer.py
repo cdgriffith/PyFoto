@@ -101,6 +101,13 @@ class Organize:
                 logger.warning("file {0} already ingested".format(file))
                 continue
 
+            self.config.image_file_inc += 1
+            if self.config.image_file_inc > self.config.folder_limit:
+                self.config.image_file_inc = 0
+                self.config.image_dir_inc += 1
+                self.session.commit()
+                self.save_config()
+
             ingest_folder = self.config.dir_names.format(increment=self.config.image_dir_inc)
 
             ingest_path = os.path.join(ingest_folder,
@@ -115,13 +122,6 @@ class Organize:
                 self.save_config()
                 self.session.commit()
                 raise err
-
-            self.config.image_file_inc += 1
-            if self.config.image_file_inc > self.config.folder_limit:
-                self.config.image_file_inc = 0
-                self.config.image_dir_inc += 1
-                self.session.commit()
-                self.save_config()
 
         self.session.commit()
         self.save_config()

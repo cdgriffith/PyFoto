@@ -23,7 +23,8 @@ default_config = dict(
     video_file_inc=0,
     image_file_inc=0,
     video_sub_dir="videos",
-    image_sub_dir="images"
+    image_sub_dir="images",
+    connect_string="sqlite:///pyfoto.sqlite"
 )
 
 
@@ -46,6 +47,9 @@ def get_config(config_file="config.yaml"):
 
 
 def save_config(config, config_file="config.yaml"):
+    out_config = config.copy()
+    del out_config['video_dir']
+    del out_config['image_dir']
     with open(config_file, "w") as f:
-        yaml.dump(config, f, default_flow_style=False)
+        yaml.dump(out_config, f, default_flow_style=False)
     logger.info("Saved config")
