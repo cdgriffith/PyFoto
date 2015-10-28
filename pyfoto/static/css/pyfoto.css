@@ -64,13 +64,16 @@ body {
 .gallery {
     margin:0;
     padding:0;
+    height: 100%;
+    overflow-y: scroll;
 }
 
 .gallery-image {
     width: 150px;
     height: 150px;
     background-size: cover;
-    background: no-repeat center center;
+    background-position: center center;
+    background-repeat: no-repeat;
     float:left;
 }
 

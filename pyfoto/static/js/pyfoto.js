@@ -26,12 +26,15 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         $scope.currentName = response.data[0].filename;
         $scope.currentTags = response.data[0].tags;
         $scope.currentSeries = response.data[0].series;
-        $scope.availTags = [];
+        $scope.availTags.length = 0;
+
         angular.forEach($scope.tags, function(value){
             if($scope.currentTags.indexOf(value) == -1){
                 $scope.availTags.push(value);
             }
         });
+        console.log($scope.availTags);
+        console.log($scope.tags);
         //$scope.$apply();
     };
 
@@ -203,6 +206,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
 
     $scope.toggleImage("off");
     $scope.starts();
-    //$scope.allTags();
+    $scope.allTags();
 
 }]);

@@ -157,7 +157,7 @@ def prepare_file_items(query_return, settings):
         else:
             path = os.path.join(settings.video_dir, item.path)
         item_list.append({"id": item.id, "path": path, "filename": item.filename, "tags": [x.tag for x in item.tags],
-                          "series": [x.name for x in item.series]})
+                          "thumbnail": item.thumbnail})
 
     return {"data": item_list}
 

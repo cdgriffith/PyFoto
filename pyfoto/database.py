@@ -29,6 +29,7 @@ class File(Base):
     size = Column(Integer)
     type = Column(String)
     filename = Column(String)
+    thumbnail = Column(String)
 
     tags = relationship("Tag", secondary=tag_association_table)
     series = relationship("Series", secondary=series_association_table)

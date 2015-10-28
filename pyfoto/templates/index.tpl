@@ -12,11 +12,11 @@
     <div class="main-area" ng-controller="indexController">
 
 
-        <div class="col-md-10">
+        <div class="col-md-10" style="height: 100%">
 
             <div class="gallery">
                 <div class="gallery-image" ng-repeat="image in galleryImages"
-                     ng-style="{'background-image': 'url(/item/' + image.path + ')'}"
+                     ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
                         ng-click="openImage(image.id)"></div>
 
 

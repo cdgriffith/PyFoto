@@ -6,6 +6,7 @@ import os
 import logging
 import shutil
 
+from PIL import Image
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -73,16 +74,21 @@ class Organize:
         new_sha256, ext, size = self.file_info(full_path)
 
         if new_sha256 == sha256:
+            thumb_dir = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, "thumbs",
+                                 ingest_path.rsplit(".")[0])
+
+            thumb_path = self.create_thumbnail(full_path, thumb_dir)
+
             if series:
                 try:
                     sql_series = self.session.query(Series).filter(Series.name == series).one()
                 except NoResultFound:
                     sql_series = Series(name=series)
                 new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
-                                filename=os.path.basename(file), series=[sql_series])
+                                filename=os.path.basename(file), series=[sql_series], thumbnail=thumb_path)
             else:
                 new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
-                                filename=os.path.basename(file))
+                                filename=os.path.basename(file), thumbnail=thumb_path)
             self.session.add(new_file)
             if self.config.remove_source:
                 os.unlink(file)
@@ -126,9 +132,13 @@ class Organize:
         self.session.commit()
         self.save_config()
 
-
     def add_videos(self, directory, series=""):
         pass
 
-    def ingest_items(self, directory, item_type="images", series=""):
-        self.q.put((directory, item_type, series))
+    def create_thumbnail(self, file, out_dir, width=250, height=250):
+        out_path = out_dir + ".jpg"
+        self.ensure_exists(os.path.dirname(out_path))
+        im = Image.open(file)
+        im.thumbnail((width, height))
+        im.save(out_path, "JPEG")
+        return out_path
