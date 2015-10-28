@@ -25,6 +25,12 @@ body {
     max-height: 100%;
 }
 
+.image-data{
+    margin: 0;
+    padding: 0;
+    display: none;
+}
+
 .tag {
     background: #999;
     -moz-border-radius:5px;
@@ -40,7 +46,7 @@ body {
     
 }
 
-.left-side {
+.right-side {
     height: 100%;
 }
 
@@ -51,8 +57,22 @@ body {
 
 .tag-cloud {
     margin: 2px;
-    padding: 0px;
+    padding: 0;
     width: 100%;
     word-wrap: normal;
 }
 
+.gallery {
+    margin:0;
+    padding:0;
+}
+
+.gallery-image {
+    width: 150px;
+    height: 150px;
+    background: 50% 50% no-repeat;
+}
+
+.main-image {
+    display: none;
+}

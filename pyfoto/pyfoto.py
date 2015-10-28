@@ -44,6 +44,15 @@ def static_file(filename, db):
                               root=os.path.abspath(app.settings.storage_directory))
 
 
+@app.route("/file/<file_id>")
+def get_item(file_id, db):
+    try:
+        file = db.query(File).filter(File.id == int(file_id)).one()
+    except NoResultFound:
+        return bottle.abort(404, "file not found")
+    return prepare_file_items([file], app.settings)
+
+
 @app.route("/file/<file_id>/tag/<tag>", method="POST")
 def add_tag_to_file(file_id, tag, db):
     options = bottle.request.query.decode()
@@ -153,6 +162,11 @@ def filter_options(query, options, db):
     return query
 
 
+def fun_search(search, db):
+    query = db.query(File).filter(File.tags.any(Tag.tag.in_(search.split(" ")))).all()
+    return query
+
+
 @app.route("/next/<item_id>")
 def next_items(item_id, db):
     options = bottle.request.query.decode()
@@ -187,14 +201,7 @@ def prev_items(item_id, db):
 @app.route("/search")
 def search(db):
     options = bottle.request.query.decode()
-
-    query = db.query(File).order_by(File.id.asc())
-    try:
-        query = filter_options(query, options, db)
-    except NoResultFound:
-        return {"data": []}
-
-    query = query.limit(100 if not options.get("count") else int(options['count']))
+    query = fun_search(options["search"],db)
 
     return prepare_file_items(query, app.settings)
 

@@ -7,12 +7,16 @@ var pyfotoApp = angular.module('pyfotoApp', []);
 
 
 pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $http) {
+    $scope.galleryImages = [];
+
+
     $scope.currentImage = "";
     $scope.currentID = 1;
     $scope.currentName = "";
     $scope.currentTags = [];
     $scope.currentSeries = [];
     $scope.availTags = [];
+    $scope.currentFilters = "";
 
     $scope.tags = [];
 
@@ -128,6 +132,34 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         }
     };
 
+
+    $scope.searchImages = function(){
+        if ($scope.searchInput == "" || $scope.searchInput == undefined){
+            alert("Did you mean to hit enter? I don't think you did...");
+            return false;
+        }
+
+        $http.get("/search?search=" + $scope.searchInput)
+        .success(function (response) {
+               $scope.galleryImages = response.data;
+                $scope.currentFilters = $scope.searchInput;
+                $scope.searchInput = "";
+            });
+
+    };
+
+    $scope.openImage = function(file_id){
+        $http.get("/file/" + file_id)
+            .success(function (response) {
+                if (response.data.length == 0){
+                    return false;
+                } else {
+                    $scope.update(response);
+                    $("#main-image").show();
+                }
+            })
+    };
+
     var $doc = angular.element(document);
 
     $doc.on('keydown', $scope.keyHandler);
@@ -136,7 +168,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     });
 
 
-    $scope.starts();
-    $scope.allTags();
+    //$scope.starts();
+    //$scope.allTags();
 
 }]);
