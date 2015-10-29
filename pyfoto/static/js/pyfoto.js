@@ -153,10 +153,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
             $(".main-image").hide();
             $(".image-data").hide();
             $(".gallery").show();
+            $(".back-to-search").hide();
         } else {
             $(".main-image").show();
             $(".image-data").show();
             $(".gallery").hide();
+            $(".back-to-search").show();
+
         }
     };
 

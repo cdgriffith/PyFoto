@@ -19,13 +19,27 @@
                         ng-click="openImage(image.id)"></div>
             </div>
 
-            <div class="main-image">
-                <img class="the-image" ng-click="nextItem()" ng-src="{{currentImage}}" />
+            <div class="main-image"
+                 ng-style="{'background-image': 'url(' + currentImage + ')'}">
+
+                <div class="col-md-1 left-image" ng-click="prevItem()">
+                    <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
+                </div>
+                <div class="col-md-1 pull-right right-image" ng-click="nextItem()">
+                    <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
+                </div>
+
             </div>
+
+
         </div>
 
         <div class="col-lg-2 col-sm-2 col-md-2 right-side">
             <div class="search-area">
+                <div class="back-to-search" ng-click="toggleImage('off')">
+                    <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
+                </div>
+
                     <form ng-submit="searchImages()" class="form-inline">
                          <div class="form-group">
                             <label class="sr-only" for="searchInput">search</label>
@@ -37,9 +51,15 @@
                         <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
                     </form>
 
+
+                <div class="current-search" ng-hide="currentFilters == undefined || currentFilters == '' ">
+                    Current Search: {{currentFilters}}
+                </div>
+
             </div>
 
             <div class="image-data">
+
                 <div class="tag-cloud">
                     <h4 class="header">Tags</h4>
                     <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag"
@@ -56,7 +76,7 @@
                          <div class="form-group">
                             <label class="sr-only" for="tagInput">Name</label>
 
-                            <input width="66%" id="tagInput" ng-model="tagInput" type="text" placeholder="Tag" />
+                            <input width="66%" id="tagInput" ng-model="tagInput" type="text" placeholder="New Tag" />
                          </div>
 
                         <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
