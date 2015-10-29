@@ -17,6 +17,7 @@
                 <div class="gallery-image" ng-repeat="image in galleryImages"
                      ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
                         ng-click="openImage(image.id)"></div>
+                <div class="more-footer col-md-12"><a ng-click="nextPage()" href="#">Load More</a></div>
             </div>
 
             <div class="main-image" ng-style="{'background-image': 'url(' + currentImage + ')'}">
@@ -92,5 +93,7 @@
         <script src="/static/js/angular.js"></script>
         <script src="/static/js/bootstrap.js"></script>
         <script src="/static/js/pyfoto.js"></script>
+
+
 </body>
 </html>

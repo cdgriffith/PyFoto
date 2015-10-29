@@ -6,9 +6,8 @@
 var pyfotoApp = angular.module('pyfotoApp', []);
 
 
-pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $http) {
+pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $http) {
     $scope.galleryImages = [];
-
 
     $scope.currentImage = "";
     $scope.currentID = 1;
@@ -50,7 +49,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     };
 
     $scope.starts = function(){
-            $http.get("/file")
+            $http.get("/file?count=100")
               .success(function (response) {
                     $scope.toggleImage("off");
                    $scope.galleryImages = response.data;
@@ -169,15 +168,16 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                     $scope.searchInput = "";
                 });
 
-        }
+        } else {
 
-        $http.get("/search?search=" + $scope.searchInput)
-        .success(function (response) {
-                $scope.toggleImage("off");
-               $scope.galleryImages = response.data;
-                $scope.currentFilters = $scope.searchInput;
-                $scope.searchInput = "";
-            });
+            $http.get("/search?search=" + $scope.searchInput)
+                .success(function (response) {
+                    $scope.toggleImage("off");
+                    $scope.galleryImages = response.data;
+                    $scope.currentFilters = $scope.searchInput;
+                    $scope.searchInput = "";
+                });
+        }
 
     };
 
@@ -193,6 +193,29 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 }
             })
     };
+
+    $scope.nextPage = function(){
+        var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
+        var url = "/next/" + highest + "?count=100";
+        if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
+            url += "&search="+$scope.currentFilters;
+        }
+        $http.get(url)
+            .success(function (response) {
+                if (response.data.length == 0){
+                    return false;
+                }
+                else {
+                    angular.forEach(response.data, function(value){
+                        $scope.galleryImages.push(value);
+                        if ($scope.galleryImages.length >= 1000){
+                            $scope.galleryImages.splice(0,1);
+                        }
+                    });
+                }
+            })
+    };
+
 
     var $doc = angular.element(document);
 

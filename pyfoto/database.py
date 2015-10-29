@@ -31,6 +31,8 @@ class File(Base):
     filename = Column(String)
     thumbnail = Column(String)
     deleted = Column(Boolean)
+    name = Column(String)
+    description = Column(String)
 
     tags = relationship("Tag", secondary=tag_association_table)
     series = relationship("Series", secondary=series_association_table)
