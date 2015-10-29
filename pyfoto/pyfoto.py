@@ -18,7 +18,10 @@ from config import get_config, default_config
 logger = logging.getLogger('PyFoto')
 sh = logging.StreamHandler()
 sh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+sh.setFormatter(formatter)
 logger.addHandler(sh)
+logger.setLevel(logging.DEBUG)
 
 app = bottle.Bottle()
 root = os.path.abspath(os.path.dirname(__file__))
@@ -251,7 +254,7 @@ def main():
 
     app.settings = get_config(args.config_file)
 
-    engine = create_engine(app.settings.connect_string, echo=True)
+    engine = create_engine(app.settings.connect_string, echo=False)
 
     plugin = sqlalchemy.Plugin(
         engine,

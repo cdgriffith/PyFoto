@@ -103,6 +103,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
 
         $http.post("/file/" + $scope.currentID + "/tag/" + $scope.tagInput)
         .success(function (response) {
+                $scope.tags.push($scope.tagInput);
                $scope.currentTags.push($scope.tagInput);
                 $scope.tagInput = "";
             });

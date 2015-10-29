@@ -15,8 +15,7 @@ import reusables
 from database import File, Tag, Base, Series
 from config import get_config, save_config
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("PyFoto")
+logger = logging.getLogger("PyFoto.organizer")
 
 
 class Organize:

@@ -7,7 +7,7 @@ import logging
 import yaml
 import reusables
 
-logger = logging.getLogger("PyFoto")
+logger = logging.getLogger("PyFoto.config")
 
 default_config = dict(
     storage_directory="storage",
