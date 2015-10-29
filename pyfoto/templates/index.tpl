@@ -19,12 +19,12 @@
                         ng-click="openImage(image.id)"></div>
             </div>
 
-            <div class="main-image"
-                 ng-style="{'background-image': 'url(' + currentImage + ')'}">
+            <div class="main-image" ng-style="{'background-image': 'url(' + currentImage + ')'}">
 
                 <div class="col-md-1 left-image" ng-click="prevItem()">
                     <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
                 </div>
+
                 <div class="col-md-1 pull-right right-image" ng-click="nextItem()">
                     <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
                 </div>
@@ -88,8 +88,8 @@
 
     </div>
 
-        <script src="/static/js/jquery-2.1.1.min.js"></script>
-        <script src="/static/js/angular.min.js"></script>
+        <script src="/static/js/jquery-2.1.4.js"></script>
+        <script src="/static/js/angular.js"></script>
         <script src="/static/js/bootstrap.js"></script>
         <script src="/static/js/pyfoto.js"></script>
 </body>

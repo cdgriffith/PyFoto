@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import os
 import logging
+import datetime
 
 import bottle
 from bottle.ext import sqlalchemy
@@ -236,6 +237,18 @@ def search(db):
 @bottle.view("index", template_settings=dict(syntax="<% %> % [[ ]]"))
 def index():
     return {}
+
+
+@app.hook('after_request')
+def log_after_request():
+    logger.info('{ip} - - [{time}] "{method} {uri} {protocol}" {status}'.format(
+        ip=bottle.request.environ.get('REMOTE_ADDR'),
+        time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        method=bottle.request.environ.get('REQUEST_METHOD'),
+        uri=bottle.request.environ.get('REQUEST_URI'),
+        protocol=bottle.request.environ.get('SERVER_PROTOCOL'),
+        status=bottle.response.status_code
+    ))
 
 
 def get_user_arguments():

@@ -33,8 +33,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 $scope.availTags.push(value);
             }
         });
-        console.log($scope.availTags);
-        console.log($scope.tags);
     };
 
     $scope.removeCurrentTag = function(tag) {
@@ -54,7 +52,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     $scope.starts = function(){
             $http.get("/file")
               .success(function (response) {
-                    console.log("response");
                     $scope.toggleImage("off");
                    $scope.galleryImages = response.data;
                     $scope.currentFilters = $scope.searchInput;
@@ -67,7 +64,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
         if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
             url += "&search="+$scope.currentFilters;
         }
-        console.log(url);
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
@@ -133,7 +129,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                 angular.forEach(response.data, function(value){
                    $scope.tags.push(value);
                 });
-                console.log($scope.tags);
             });
     };
 
@@ -172,7 +167,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
                    $scope.galleryImages = response.data;
                     $scope.currentFilters = $scope.searchInput;
                     $scope.searchInput = "";
-                    history.pushState($scope.currentFilters, "search", "index.html");
                 });
 
         }
@@ -188,7 +182,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', function($scope, $ht
     };
 
     $scope.openImage = function(file_id){
-        console.log("Open image called for "+ file_id);
         $http.get("/file/" + file_id)
             .success(function (response) {
                 if (response.data == undefined || response.data.length == 0){
