@@ -8,13 +8,12 @@ import datetime
 
 import bottle
 from bottle.ext import sqlalchemy
-import reusables
-
-from organizer import Organize
 from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import NoResultFound
-from database import File, Tag, Series, Base
-from config import get_config, default_config
+
+from pyfoto.organizer import Organize
+from pyfoto.database import File, Tag, Series, Base
+from pyfoto.config import get_config, default_config
 
 logger = logging.getLogger('PyFoto')
 sh = logging.StreamHandler()

@@ -12,8 +12,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 import reusables
 
-from database import File, Tag, Base, Series
-from config import get_config, save_config
+from pyfoto.database import File, Tag, Base, Series
+from pyfoto.config import get_config, save_config
 
 logger = logging.getLogger("PyFoto.organizer")
 
