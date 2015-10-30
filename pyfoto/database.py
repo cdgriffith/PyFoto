@@ -30,7 +30,7 @@ class File(Base):
     type = Column(String)
     filename = Column(String)
     thumbnail = Column(String)
-    deleted = Column(Boolean)
+    deleted = Column(Boolean, default=False)
     name = Column(String)
     description = Column(String)
 

@@ -200,10 +200,11 @@ def next_items(item_id, db):
     options = bottle.request.query.decode()
 
     if options.get("search"):
-        query = db.query(File).order_by(File.id.asc()).filter(File.deleted is False).filter(File.id > int(item_id)).filter(File.tags.any(Tag.tag.in_(
+        query = db.query(File).order_by(File.id.asc()).filter(File.deleted == 0).filter(File.id > int(item_id)).filter(
+            File.tags.any(Tag.tag.in_(
             options["search"].split(" ")))).limit(1 if not options.get("count") else int(options['count'])).all()
     else:
-        query = db.query(File).order_by(File.id.asc()).filter(File.deleted is False).filter(File.id > int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
+        query = db.query(File).order_by(File.id.asc()).filter(File.deleted == 0).filter(File.id > int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
 
@@ -213,10 +214,10 @@ def prev_items(item_id, db):
     options = bottle.request.query.decode()
 
     if options.get("search"):
-        query = db.query(File).order_by(File.id.desc()).filter(File.deleted is False).filter(File.id < int(item_id)).filter(File.tags.any(Tag.tag.in_(
+        query = db.query(File).order_by(File.id.desc()).filter(File.deleted == 0).filter(File.id < int(item_id)).filter(File.tags.any(Tag.tag.in_(
             options["search"].split(" ")))).limit(1 if not options.get("count") else int(options['count'])).all()
     else:
-        query = db.query(File).order_by(File.id.desc()).filter(File.deleted is False).filter(File.id < int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
+        query = db.query(File).order_by(File.id.desc()).filter(File.deleted  == 0).filter(File.id < int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
 
