@@ -54,7 +54,9 @@
 
 
                 <div class="current-search" ng-hide="currentFilters == undefined || currentFilters == '' ">
-                    Current Search: {{currentFilters}}
+                    <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"
+                          ng-click="searchTag('')"></span> Current Search:
+                    {{currentFilters}}
                 </div>
 
 
