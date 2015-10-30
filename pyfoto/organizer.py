@@ -73,10 +73,14 @@ class Organize:
         new_sha256, ext, size = self.file_info(full_path)
 
         if new_sha256 == sha256:
-            thumb_dir = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, "thumbs",
-                                 ingest_path.rsplit(".")[0])
+            thumb_path = os.path.join("thumbs", ingest_path.rsplit(".")[0] + ".jpg")
+            thumb_dir = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, thumb_path)
 
-            thumb_path = self.create_thumbnail(full_path, thumb_dir)
+            try:
+                self.create_thumbnail(full_path, thumb_dir)
+            except Exception as err:
+                logger.exception("Count not create thumbnail for {0}, will redirect to main image".format(file))
+                thumb_path = ingest_path
 
             if series:
                 try:
@@ -134,10 +138,11 @@ class Organize:
     def add_videos(self, directory, series=""):
         pass
 
-    def create_thumbnail(self, file, out_dir, width=250, height=250):
-        out_path = out_dir + ".jpg"
+    def create_thumbnail(self, file, out_path, width=250, height=250):
         self.ensure_exists(os.path.dirname(out_path))
         im = Image.open(file)
         im.thumbnail((width, height))
-        im.save(out_path, "JPEG")
-        return out_path
+        try:
+            im.save(out_path, "JPEG")
+        except OSError as err:
+            im.convert('RGB').save(out_path, "JPEG")

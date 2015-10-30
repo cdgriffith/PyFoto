@@ -66,6 +66,7 @@ def get_item(file_id, db):
     results = prepare_file_items([file], app.settings)
     if not results:
         return bottle.abort(404, "file not found")
+    print(results)
     return results
 
 
@@ -173,13 +174,9 @@ def prepare_file_items(query_return, settings):
     for item in query_return:
         if item.deleted:
             continue
-        if item.type == "image":
-            path = os.path.join(settings.image_dir, item.path)
-        else:
-            path = os.path.join(settings.video_dir, item.path)
-        item_list.append({"id": item.id, "path": path, "filename": item.filename, "tags": [x.tag for x in item.tags],
-                          "thumbnail": item.thumbnail})
-
+        item_list.append({"id": item.id, "path": item.path.replace("\\", "/"), "filename": item.filename, "tags": [x.tag for x in
+                                                                                                         item.tags],
+                          "thumbnail": item.thumbnail.replace("\\", "/")})
     return {"data": item_list}
 
 
@@ -203,10 +200,10 @@ def next_items(item_id, db):
     options = bottle.request.query.decode()
 
     if options.get("search"):
-        query = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id)).filter(File.tags.any(Tag.tag.in_(
+        query = db.query(File).order_by(File.id.asc()).filter(File.deleted is False).filter(File.id > int(item_id)).filter(File.tags.any(Tag.tag.in_(
             options["search"].split(" ")))).limit(1 if not options.get("count") else int(options['count'])).all()
     else:
-        query = db.query(File).order_by(File.id.asc()).filter(File.id > int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
+        query = db.query(File).order_by(File.id.asc()).filter(File.deleted is False).filter(File.id > int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
 
@@ -216,10 +213,10 @@ def prev_items(item_id, db):
     options = bottle.request.query.decode()
 
     if options.get("search"):
-        query = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id)).filter(File.tags.any(Tag.tag.in_(
+        query = db.query(File).order_by(File.id.desc()).filter(File.deleted is False).filter(File.id < int(item_id)).filter(File.tags.any(Tag.tag.in_(
             options["search"].split(" ")))).limit(1 if not options.get("count") else int(options['count'])).all()
     else:
-        query = db.query(File).order_by(File.id.desc()).filter(File.id < int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
+        query = db.query(File).order_by(File.id.desc()).filter(File.deleted is False).filter(File.id < int(item_id)).limit(1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
 

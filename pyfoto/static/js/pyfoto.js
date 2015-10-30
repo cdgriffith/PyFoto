@@ -21,7 +21,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
     $scope.update = function(response){
         $scope.currentID = response.data[0].id;
-        $scope.currentImage = "/item/" + response.data[0].path;
+        $scope.currentImage = response.data[0].path;
         $scope.currentName = response.data[0].filename;
         $scope.currentTags = response.data[0].tags;
         $scope.currentSeries = response.data[0].series;
@@ -46,6 +46,14 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                 $scope.availTags.push(value);
             }
         });
+    };
+
+    $scope.deleteImage = function(){
+          $http.delete("/file/" + $scope.currentID)
+              .success(function (response) {
+                    $scope.nextItem();
+                });
+
     };
 
     $scope.starts = function(){
