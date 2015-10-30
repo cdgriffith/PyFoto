@@ -156,12 +156,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             $(".image-data").hide();
             $(".gallery").show();
             $(".back-to-search").hide();
+            $(".search-data").show();
         } else {
             $(".main-image").show();
             $(".image-data").show();
             $(".gallery").hide();
             $(".back-to-search").show();
-
+            $(".search-data").hide();
         }
     };
 
@@ -224,6 +225,11 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             })
     };
 
+
+    $scope.searchTag = function(tag){
+        $scope.searchInput = tag;
+        $scope.searchImages();
+    }
 
     var $doc = angular.element(document);
 

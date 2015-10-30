@@ -11,7 +11,7 @@
 
     <div class="main-area" ng-controller="indexController">
 
-        <div class="col-md-10" style="height: 100%">
+        <div class="col-md-10 left-side" style="height: 100%">
 
             <div class="gallery">
                 <div class="gallery-image" ng-repeat="image in galleryImages"
@@ -57,10 +57,22 @@
                     Current Search: {{currentFilters}}
                 </div>
 
+
+            </div>
+            <div class="search-data">
+                <div class="tag-cloud">
+                    <h4 class="header">Search Tags</h4>
+                    <span ng-repeat="tag in tags" class="tag" ng-click="searchTag(tag)">{{tag}}</span>
+                </div>
+
             </div>
 
+
             <div class="image-data">
-                <button class="btn btn-danger" ng-click="deleteImage()">Delete</button>
+                <div class="image-details">
+                    <a href="/item/images/{{currentImage}}" download="{{currentName}}" >Download</a> |
+                    <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;
+                </div>
 
                 <div class="tag-cloud">
                     <h4 class="header">Tags</h4>

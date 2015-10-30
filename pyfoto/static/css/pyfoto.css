@@ -39,6 +39,7 @@ body {
     padding: 1px 4px;
     margin: 3px;
     display:inline-block;
+    cursor: pointer;
 }
 
 .add-tag {
@@ -147,4 +148,16 @@ body {
 .more-footer {
     text-align: center;
 
+}
+
+.image-details{
+    color: #fff;
+}
+
+.left-side {
+    padding: 0 1px;
+}
+
+.right-side{
+    padding: 0 1px;
 }
