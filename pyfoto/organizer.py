@@ -59,7 +59,7 @@ class Organize:
             return True
         return False
 
-    def ingest(self, file, ingest_path, sha256, file_type, series=""):
+    def ingest(self, file, ingest_path, sha256, file_type, tags=()):
         """Copy a file to the new location and verify it was copied completely with the hash"""
 
         full_path = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, ingest_path)
@@ -76,22 +76,31 @@ class Organize:
             thumb_path = os.path.join("thumbs", ingest_path.rsplit(".")[0] + ".jpg")
             thumb_dir = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, thumb_path)
 
+            tags = list(tags)
+
+            if not tags:
+                tags.append("untagged")
+
+            add_tags = []
+            for tag in tags:
+                try:
+                    add_tag = self.session.query(Tag).filter(Tag.tag == tag).one()
+                except NoResultFound:
+                    add_tag = Tag(tag=tag)
+                    self.session.add(add_tag)
+                if add_tag in add_tags:
+                    continue
+                add_tags.append(add_tag)
+
             try:
                 self.create_thumbnail(full_path, thumb_dir)
             except Exception as err:
                 logger.exception("Count not create thumbnail for {0}, will redirect to main image".format(file))
                 thumb_path = ingest_path
 
-            if series:
-                try:
-                    sql_series = self.session.query(Series).filter(Series.name == series).one()
-                except NoResultFound:
-                    sql_series = Series(name=series)
-                new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
-                                filename=os.path.basename(file), series=[sql_series], thumbnail=thumb_path)
-            else:
-                new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
-                                filename=os.path.basename(file), thumbnail=thumb_path)
+            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
+                                filename=os.path.basename(file), thumbnail=thumb_path, tags=add_tags)
+
             self.session.add(new_file)
             if self.config.remove_source:
                 os.unlink(file)
