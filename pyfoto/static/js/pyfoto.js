@@ -46,6 +46,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                 $scope.availTags.push(value);
             }
         });
+        $scope.availTags.sort();
     };
 
     $scope.deleteImage = function(){

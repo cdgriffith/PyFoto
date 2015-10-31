@@ -129,6 +129,7 @@ def view_tags(db):
     tag_list = []
     for tag in tags:
         tag_list.append(tag.tag)
+    tag_list.sort()
     return {"data": tag_list}
 
 
