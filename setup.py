@@ -20,7 +20,7 @@ setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'pyfoto = pyfoto.pyfoto:main'
+            'pyfoto = pyfoto.web_service:main'
         ]}
 )
 

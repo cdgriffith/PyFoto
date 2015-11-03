@@ -8,7 +8,6 @@
 </head>
 <body>
 
-
     <div class="main-area" ng-controller="indexController">
 
         <div class="col-md-10 left-side" style="height: 100%">
@@ -29,13 +28,12 @@
                 <div class="col-md-1 pull-right right-image" ng-click="nextItem()">
                     <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
                 </div>
-
             </div>
-
 
         </div>
 
         <div class="col-lg-2 col-sm-2 col-md-2 right-side">
+
             <div class="search-area">
                 <div class="back-to-search" ng-click="toggleImage('off')">
                     <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
@@ -44,14 +42,11 @@
                     <form ng-submit="searchImages()" class="form-inline">
                          <div class="form-group">
                             <label class="sr-only" for="searchInput">search</label>
-
                             <input id="searchInput" ng-model="searchInput" type="text"
                                    placeholder="Search" />
                          </div>
-
                         <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
                     </form>
-
 
                 <div class="current-search" ng-hide="currentFilters == undefined || currentFilters == '' ">
                     <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"
@@ -59,14 +54,13 @@
                     {{currentFilters}}
                 </div>
 
-
             </div>
+
             <div class="search-data">
                 <div class="tag-cloud">
                     <h4 class="header">Search Tags</h4>
                     <span ng-repeat="tag in tags" class="tag" ng-click="searchTag(tag)">{{tag}}</span>
                 </div>
-
             </div>
 
 
@@ -91,15 +85,13 @@
                     <form ng-submit="addTagToFile()" class="form-inline">
                          <div class="form-group">
                             <label class="sr-only" for="tagInput">Name</label>
-
                             <input width="66%" id="tagInput" ng-model="tagInput" type="text" placeholder="New Tag" />
                          </div>
-
                         <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
                     </form>
-
                 </div>
             </div>
+
         </div>
 
     </div>
