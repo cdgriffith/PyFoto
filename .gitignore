@@ -60,3 +60,4 @@ storage/
 *.yaml
 *.json
 venv
+.idea/

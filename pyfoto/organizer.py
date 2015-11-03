@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 import reusables
 
-from pyfoto.database import File, Tag, Base, Series
+from pyfoto.database import File, Tag, Base
 from pyfoto.config import get_config, save_config
 
 logger = logging.getLogger("PyFoto.organizer")
@@ -33,7 +33,7 @@ class Organize:
         self.save_config()
 
     @staticmethod
-    def ensure_exists(directory):
+    def ensure_exists(directory: str) -> None:
         """
         If a specified path does not exist, create it.
 
@@ -76,7 +76,8 @@ class Organize:
 
     def already_ingested(self, sha256: str) -> bool:
         """
-        Determine if an item has already been ingested by comparing it to existing SHA256s.
+        Determine if an item has already been ingested by
+        comparing it to existing SHA256s.
 
         :param sha256:
         :return:
@@ -88,7 +89,8 @@ class Organize:
 
     def tag_strings_to_tags(self, tags: tuple) -> list:
         """
-        Take a list of strings that represent tags and return SQLAlchemy objects.
+        Take a list of strings that represent tags
+        and return SQLAlchemy objects.
 
         :param tags: list of string tags.
         :return: list of SQLAlchemy objects.
@@ -112,9 +114,11 @@ class Organize:
 
         return add_tags
 
-    def ingest(self, file: str, ingest_path: str, sha256: str, file_type: str="image", tags: tuple=()):
+    def ingest(self, file: str, ingest_path: str, sha256: str,
+               file_type: str="image", tags: tuple=()) -> None:
         """
-        Copy a file to the new location and verify it was copied completely with the hash.
+        Copy a file to the new location and verify it was
+        copied completely with the hash. Also create a thumbnail of the item.
 
         :param file:
         :param ingest_path:
@@ -124,7 +128,7 @@ class Organize:
         :return:
         """
 
-        full_path = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir, ingest_path)
+        full_path = os.path.join(self.config.storage_directory, ingest_path)
 
         self.ensure_exists(os.path.dirname(full_path))
 
@@ -134,36 +138,41 @@ class Organize:
         shutil.copy(file, full_path)
         new_sha256, ext, size = self.file_info(full_path)
 
-        if new_sha256 == sha256:
-            thumb_path = os.path.join("thumbs", ingest_path.rsplit(".")[0] + ".jpg")
-            thumb_dir = os.path.join(self.config.image_dir if file_type == "image" else self.config.video_dir,
-                                     thumb_path)
-
-            try:
-                self.create_thumbnail(full_path, thumb_dir)
-            except Exception:
-                logger.exception("Count not create thumbnail for {0}, will redirect to main image".format(file))
-                thumb_path = ingest_path
-
-            new_file = File(path=ingest_path, sha256=sha256, extension=ext, size=size, type=file_type,
-                            filename=os.path.basename(file), thumbnail=thumb_path, tags=self.tag_strings_to_tags(tags))
-
-            self.session.add(new_file)
-            if self.config.remove_source:
-                os.unlink(file)
-        else:
+        if new_sha256 != sha256:
             logger.error("File {0} did not copy correctly!".format(file))
             os.unlink(full_path)
+            return
 
-    def save_config(self):
+        thumb_path = os.path.join("thumbs", ingest_path.rsplit(".")[0] + ".jpg")
+        thumb_dir = os.path.join(self.config.storage_directory, thumb_path)
+
+        try:
+            self.create_thumbnail(full_path, thumb_dir)
+        except Exception as err:
+            logger.exception("Count not create thumbnail for {0}, will redirect"
+                             " to main image. Error: {1}".format(file, err))
+            thumb_path = ingest_path
+
+        new_file = File(path=ingest_path, sha256=sha256, extension=ext,
+                        size=size, type=file_type,
+                        filename=os.path.basename(file),
+                        thumbnail=thumb_path,
+                        tags=self.tag_strings_to_tags(tags))
+
+        self.session.add(new_file)
+        if self.config.remove_source:
+            os.unlink(file)
+
+    def save_config(self) -> None:
         """
+        Convert the config to dict and write it out to the YAML file.
 
         :return:
         """
 
         save_config(self.config.to_dict())
 
-    def add_images(self, directory: str, tags: tuple=()):
+    def add_images(self, directory: str, tags: tuple=()) -> None:
         """
         Go through a directory for all image files and ingest them.
 
@@ -172,29 +181,35 @@ class Organize:
         :return:
         """
 
-        for file in reusables.find_all_files_generator(directory, ext=reusables.exts.pictures):
+        for file in reusables.find_all_files_generator(
+                directory, ext=reusables.exts.pictures):
+
             sha256, ext, size = self.file_info(file)
-            if not self.config.ignore_duplicates and self.already_ingested(sha256):
+            if (not self.config.ignore_duplicates and
+                    self.already_ingested(sha256)):
                 logger.warning("file {0} already ingested".format(file))
                 continue
 
-            self.config.image_file_inc += 1
-            if self.config.image_file_inc > self.config.folder_limit:
-                self.config.image_file_inc = 0
-                self.config.image_dir_inc += 1
+            self.config.file_inc += 1
+            if self.config.file_inc > self.config.folder_limit:
+                self.config.file_inc = 0
+                self.config.dir_inc += 1
                 self.session.commit()
                 self.save_config()
 
-            ingest_folder = self.config.dir_names.format(increment=self.config.image_dir_inc)
+            ingest_folder = self.config.dir_names.format(
+                                increment=self.config.dir_inc)
 
             ingest_path = os.path.join(ingest_folder,
-                                       self.config.image_names.format(increment=self.config.image_file_inc,
-                                                                      ext=ext,
-                                                                      hash=sha256,
-                                                                      size=size))
+                                       self.config.image_names.format(
+                                           increment=self.config.file_inc,
+                                           ext=ext,
+                                           hash=sha256,
+                                           size=size))
 
             try:
-                self.ingest(file, ingest_path, sha256, file_type="image", tags=tags)
+                self.ingest(file, ingest_path, sha256,
+                            file_type="image", tags=tags)
             except Exception as err:
                 self.save_config()
                 self.session.commit()
@@ -203,10 +218,8 @@ class Organize:
         self.session.commit()
         self.save_config()
 
-    def add_videos(self, directory, series=""):
-        pass
-
-    def create_thumbnail(self, file, out_path, width=250, height=250):
+    def create_thumbnail(self, file: str, out_path: str,
+                         width: int=250, height: int=250) -> None:
         """
         Create a thumbnail with Pillow then save it to the out_path.
 
@@ -216,6 +229,7 @@ class Organize:
         :param height:
         :return:
         """
+
         self.ensure_exists(os.path.dirname(out_path))
         im = Image.open(file)
         im.thumbnail((width, height))
