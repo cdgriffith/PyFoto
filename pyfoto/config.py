@@ -29,6 +29,12 @@ default_config = dict(
 
 
 def get_config(config_file="config.yaml"):
+    """
+
+    :param config_file:
+    :return:
+    """
+
     config = default_config.copy()
 
     if os.path.exists(config_file):
@@ -47,6 +53,13 @@ def get_config(config_file="config.yaml"):
 
 
 def save_config(config, config_file="config.yaml"):
+    """
+
+    :param config:
+    :param config_file:
+    :return:
+    """
+
     out_config = config.copy()
     del out_config['video_dir']
     del out_config['image_dir']
