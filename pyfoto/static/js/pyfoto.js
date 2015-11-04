@@ -230,7 +230,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.searchTag = function(tag){
         $scope.searchInput = tag;
         $scope.searchImages();
-    }
+    };
 
     var $doc = angular.element(document);
 
@@ -245,8 +245,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
 }]);
 
-
-pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $http) {
+pyfotoApp.controller('ingestController', ['$scope', '$http',  function($scope, $http) {
 
     $scope.ingestDirectory = function(){
 
