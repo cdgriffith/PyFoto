@@ -63,7 +63,7 @@ def get_item(file_id, db):
     results = prepare_file_items([file], app.settings)
     if not results:
         return bottle.abort(404, "file not found")
-    print(results)
+
     return results
 
 
@@ -82,6 +82,11 @@ def delete_item(file_id, db):
 
 @app.route("/file/<file_id>/tag/<tag>", method="POST")
 def add_tag_to_file(file_id, tag, db):
+    tag = tag.strip().lower()
+    if tag == "untagged":
+        return {"error": True, "message": "The only way to add untagged, "
+                                          "is remove all others."}
+
     options = bottle.request.query.decode()
     tag = add_tag(tag, options, db)
     try:
@@ -89,6 +94,10 @@ def add_tag_to_file(file_id, tag, db):
     except NoResultFound:
         return bottle.abort(404, "file not found")
     else:
+        untagged = db.query(Tag).filter(Tag.tag == "untagged").one()
+        if untagged in file.tags:
+            file.tags.remove(untagged)
+
         if not (tag in file.tags):
             file.tags.append(tag)
             db.commit()
@@ -97,6 +106,10 @@ def add_tag_to_file(file_id, tag, db):
 
 @app.route("/file/<file_id>/tag/<tag>", method="DELETE")
 def remove_tag_from_file(file_id, tag, db):
+    tag = tag.strip().lower()
+    if tag == "untagged":
+        return {"error": True, "message": "The only way to remove untagged, "
+                                          "is to add a new one."}
     try:
         tag_item = db.query(Tag).filter(Tag.tag == tag).one()
         file_item = db.query(File).filter(File.id == file_id).one()
@@ -104,20 +117,11 @@ def remove_tag_from_file(file_id, tag, db):
         return {"error": True}
 
     file_item.tags.remove(tag_item)
+    if not file_item.tags:
+        file_item.tags.append(db.query(Tag).filter(Tag.tag == "untagged").one())
+
+    db.commit()
     return {"error": False}
-
-
-@app.route("/file/ingest", method="POST")
-def ingest_files(db):
-    options = bottle.request.query.decode()
-    if not options.get("directory") or not os.path.exists(options["directory"]):
-        return {"error": True, "message": "Directory not specified"}
-
-    try:
-        for count in app.org.add_images(options["directory"]):
-            yield json.dumps({"error": False, "count": count})
-    except Exception as err:
-        return {"error": True, "message": str(err)}
 
 
 @app.route("/tag")
@@ -193,7 +197,7 @@ def filter_options(query, options, db):
 
 def fun_search(search, db):
     query = db.query(File).filter(
-        File.tags.any(Tag.tag.in_(search.split(" ")))).all()
+        File.tags.any(Tag.tag.in_(search.split(" ")))).limit(100).all()
     return query
 
 

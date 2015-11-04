@@ -28,7 +28,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
         $scope.availTags.length = 0;
 
         angular.forEach($scope.tags, function(value){
-            if($scope.currentTags.indexOf(value) == -1){
+            if($scope.currentTags.indexOf(value) == -1 && value != "untagged"){
                 $scope.availTags.push(value);
             }
         });
@@ -42,10 +42,16 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.updateAvailTags = function(){
         $scope.availTags = [];
         angular.forEach($scope.tags, function(value){
-            if($scope.currentTags.indexOf(value) == -1){
+            if($scope.currentTags.indexOf(value) == -1 && value != "untagged"){
                 $scope.availTags.push(value);
             }
         });
+        if ($scope.currentTags.length == 0) {
+            $scope.currentTags.push("untagged");
+        } else if ($scope.currentTags.indexOf("untagged") > -1) {
+            $scope.removeCurrentTag("untagged");
+        }
+
         $scope.availTags.sort();
     };
 
@@ -110,10 +116,18 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                 $scope.tags.push($scope.tagInput);
                $scope.currentTags.push($scope.tagInput);
                 $scope.tagInput = "";
+                if($scope.tags.indexOf("untagged") != -1){
+                   $scope.tags.slice($scope.tags.indexOf("untagged"), 1);
+                }
+
             });
     };
 
     $scope.modifyTag = function(tag, action){
+        if (tag == "untagged") {
+            console.log("Someone tried to modify 'untagged', hehe");
+            return false;
+        }
         if(action=='add'){
             $http.post("/file/" + $scope.currentID + "/tag/" + tag)
             .success(function (response) {
