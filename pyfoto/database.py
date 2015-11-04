@@ -2,19 +2,24 @@
 # -*- coding: UTF-8 -*-
 
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Table, ForeignKey, PrimaryKeyConstraint, Boolean
+from sqlalchemy import (Column, Integer, String, Table, ForeignKey,
+                        PrimaryKeyConstraint, Boolean)
 from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
 tag_association_table = Table('tag_association', Base.metadata,
-                              Column('file_id', Integer, ForeignKey('files.id')),
-                              Column('tag_id', Integer, ForeignKey('tags.id')),
+                              Column('file_id', Integer,
+                                     ForeignKey('files.id')),
+                              Column('tag_id', Integer,
+                                     ForeignKey('tags.id')),
                               PrimaryKeyConstraint('file_id', 'tag_id'))
 
 series_association_table = Table('series_association', Base.metadata,
-                                 Column('file_id', Integer, ForeignKey('files.id')),
-                                 Column('series_id', Integer, ForeignKey('series.id')),
+                                 Column('file_id', Integer,
+                                        ForeignKey('files.id')),
+                                 Column('series_id', Integer,
+                                        ForeignKey('series.id')),
                                  PrimaryKeyConstraint('file_id', 'series_id'))
 
 

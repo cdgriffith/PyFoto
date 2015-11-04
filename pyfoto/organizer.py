@@ -201,7 +201,7 @@ class Organize:
                                 increment=self.config.dir_inc)
 
             ingest_path = os.path.join(ingest_folder,
-                                       self.config.image_names.format(
+                                       self.config.file_names.format(
                                            increment=self.config.file_inc,
                                            ext=ext,
                                            hash=sha256,

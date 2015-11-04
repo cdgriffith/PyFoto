@@ -18,7 +18,8 @@ from pyfoto.config import get_config, default_config
 logger = logging.getLogger('PyFoto')
 sh = logging.StreamHandler()
 sh.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(name)s - '
+                              '%(levelname)s - %(message)s')
 sh.setFormatter(formatter)
 logger.addHandler(sh)
 logger.setLevel(logging.DEBUG)
@@ -44,14 +45,16 @@ def static_file(filename, db):
     if filename.startswith(app.settings.storage_directory):
         filename = filename[len(app.settings.storage_directory) + 1:]
     return bottle.static_file(filename,
-                              root=os.path.abspath(app.settings.storage_directory))
+                              root=os.path.abspath(
+                                  app.settings.storage_directory))
 
 
 @app.route("/file")
 def get_items(db):
     options = bottle.request.query.decode()
     try:
-        files = db.query(File).order_by(File.id.asc()).limit(options.get("count", 1000)).all()
+        files = db.query(File).order_by(File.id.asc()).limit(
+            options.get("count", 1000)).all()
     except NoResultFound:
         return {"data": []}
     return prepare_file_items(files, app.settings)
@@ -162,7 +165,8 @@ def add_series(series, options, db):
     try:
         series_item = db.query(Series).filter(Series.name == series).one()
     except NoResultFound:
-        series_item = Series(name=series, description=options.get("description", ""),
+        series_item = Series(name=series,
+                             description=options.get("description", ""),
                              source=options.get("source", ""),
                              url=options.get("url", ""))
         db.add(series_item)
@@ -175,9 +179,9 @@ def prepare_file_items(query_return, settings):
     for item in query_return:
         if item.deleted:
             continue
-        item_list.append({"id": item.id, 
-                          "path": item.path.replace("\\", "/"), 
-                          "filename": item.filename, 
+        item_list.append({"id": item.id,
+                          "path": item.path.replace("\\", "/"),
+                          "filename": item.filename,
                           "tags": [x.tag for x in item.tags],
                           "thumbnail": item.thumbnail.replace("\\", "/")})
     return {"data": item_list}
@@ -194,7 +198,8 @@ def filter_options(query, options, db):
 
 
 def fun_search(search, db):
-    query = db.query(File).filter(File.tags.any(Tag.tag.in_(search.split(" ")))).all()
+    query = db.query(File).filter(
+        File.tags.any(Tag.tag.in_(search.split(" ")))).all()
     return query
 
 
@@ -203,11 +208,13 @@ def next_items(item_id, db):
     options = bottle.request.query.decode()
 
     if options.get("search"):
-        query = db.query(File).order_by(File.id.asc()).filter(File.deleted == 0).filter(File.id > int(item_id)).filter(
+        query = db.query(File).order_by(File.id.asc()).filter(
+            File.deleted == 0).filter(File.id > int(item_id)).filter(
             File.tags.any(Tag.tag.in_(options["search"].split(" ")))).limit(
             1 if not options.get("count") else int(options['count'])).all()
     else:
-        query = db.query(File).order_by(File.id.asc()).filter(File.deleted == 0).filter(File.id > int(item_id)).limit(
+        query = db.query(File).order_by(File.id.asc()).filter(
+            File.deleted == 0).filter(File.id > int(item_id)).limit(
             1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)
@@ -218,11 +225,13 @@ def prev_items(item_id, db):
     options = bottle.request.query.decode()
 
     if options.get("search"):
-        query = db.query(File).order_by(File.id.desc()).filter(File.deleted == 0).filter(File.id < int(item_id)).filter(
+        query = db.query(File).order_by(File.id.desc()).filter(
+            File.deleted == 0).filter(File.id < int(item_id)).filter(
             File.tags.any(Tag.tag.in_(options["search"].split(" ")))).limit(
             1 if not options.get("count") else int(options['count'])).all()
     else:
-        query = db.query(File).order_by(File.id.desc()).filter(File.deleted == 0).filter(File.id < int(item_id)).limit(
+        query = db.query(File).order_by(File.id.desc()).filter(
+            File.deleted == 0).filter(File.id < int(item_id)).limit(
             1 if not options.get("count") else int(options['count'])).all()
 
     return prepare_file_items(query, app.settings)

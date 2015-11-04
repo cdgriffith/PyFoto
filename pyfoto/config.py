@@ -13,15 +13,12 @@ default_config = dict(
     storage_directory="storage",
     # TODO add {date}, {time}, {type}, {hash}, {size}
     dir_names="{increment}",
-    image_names="{increment}.{ext}",
-    video_names="{increment}.{ext}",
+    file_names="{increment}.{ext}",
     remove_source=False,
     folder_limit=1000,
     ignore_duplicates=False,
     dir_inc=0,
     file_inc=0,
-    video_sub_dir="videos",
-    image_sub_dir="images",
     connect_string="sqlite:///pyfoto.sqlite"
 )
 
