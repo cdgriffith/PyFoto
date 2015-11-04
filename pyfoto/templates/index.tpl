@@ -14,12 +14,12 @@
 
             <div class="gallery">
                 <div class="gallery-image" ng-repeat="image in galleryImages"
-                     ng-style="{'background-image': 'url(/item/images/' + image.thumbnail + ')'}"
+                     ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
                         ng-click="openImage(image.id)"></div>
                 <div class="more-footer col-md-12"><a ng-click="nextPage()" href="#">Load More</a></div>
             </div>
 
-            <div class="main-image" ng-style="{'background-image': 'url(item/images/' + currentImage + ')'}">
+            <div class="main-image" ng-style="{'background-image': 'url(item/' + currentImage + ')'}">
 
                 <div class="col-md-1 left-image" ng-click="prevItem()">
                     <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
@@ -66,7 +66,7 @@
 
             <div class="image-data">
                 <div class="image-details">
-                    <a href="/item/images/{{currentImage}}" download="{{currentName}}" >Download</a> |
+                    <a href="/item/{{currentImage}}" download="{{currentName}}" >Download</a> |
                     <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;
                 </div>
 

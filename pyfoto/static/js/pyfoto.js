@@ -244,3 +244,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.allTags();
 
 }]);
+
+
+pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $http) {
+
+    $scope.ingestDirectory = function(){
+
+
+    }
+
+}]);

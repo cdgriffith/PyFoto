@@ -3,7 +3,6 @@
 from __future__ import print_function, absolute_import
 
 import os
-import logging
 import shutil
 
 from PIL import Image
@@ -13,23 +12,23 @@ from sqlalchemy.orm.exc import NoResultFound
 import reusables
 
 from pyfoto.database import File, Tag, Base
-from pyfoto.config import get_config, save_config
+from pyfoto.config import get_config, save_config, get_stream_logger
 
-logger = logging.getLogger("PyFoto.organizer")
+logger = get_stream_logger("organizer")
 
 
 class Organize:
 
-    def __init__(self, engine=None):
-        self.config = get_config()
+    def __init__(self, config_file: str="config.yaml", engine=None):
+
+        self.config = get_config(config_file)
 
         if not engine:
             engine = create_engine(self.config.connect_string)
         Base.metadata.create_all(engine, checkfirst=True)
         self.session = sessionmaker(bind=engine)()
 
-        self.ensure_exists(self.config.video_dir)
-        self.ensure_exists(self.config.image_dir)
+        self.ensure_exists(self.config.storage_directory)
         self.save_config()
 
     @staticmethod
@@ -41,7 +40,7 @@ class Organize:
         :return:
         """
 
-        if not os.path.exists(directory):
+        if directory and not os.path.exists(directory):
             os.makedirs(directory)
 
     @staticmethod
@@ -149,8 +148,9 @@ class Organize:
         try:
             self.create_thumbnail(full_path, thumb_dir)
         except Exception as err:
-            logger.exception("Count not create thumbnail for {0}, will redirect"
-                             " to main image. Error: {1}".format(file, err))
+            logger.exception("Count not create thumbnail for {0}, will "
+                             "redirect to main image. "
+                             "Error: {1}".format(file, err))
             thumb_path = ingest_path
 
         new_file = File(path=ingest_path, sha256=sha256, extension=ext,
@@ -172,7 +172,7 @@ class Organize:
 
         save_config(self.config.to_dict())
 
-    def add_images(self, directory: str, tags: tuple=()) -> None:
+    def add_images(self, directory: str, tags: tuple=()):
         """
         Go through a directory for all image files and ingest them.
 
@@ -181,8 +181,13 @@ class Organize:
         :return:
         """
 
+        total = 0
+        # I don't use enumerate because I have to return the number at the end
         for file in reusables.find_all_files_generator(
                 directory, ext=reusables.exts.pictures):
+            total += 1
+            if total % 5.0 == 0.0:
+                yield total
 
             sha256, ext, size = self.file_info(file)
             if (not self.config.ignore_duplicates and
@@ -217,6 +222,7 @@ class Organize:
 
         self.session.commit()
         self.save_config()
+        yield total
 
     def create_thumbnail(self, file: str, out_path: str,
                          width: int=250, height: int=250) -> None:
@@ -237,3 +243,6 @@ class Organize:
             im.save(out_path, "JPEG")
         except OSError:
             im.convert('RGB').save(out_path, "JPEG")
+
+
+

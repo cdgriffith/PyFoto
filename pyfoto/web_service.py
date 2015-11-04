@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import os
 import logging
 import datetime
+import json
 
 import bottle
 from bottle.ext import sqlalchemy
@@ -13,16 +14,9 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from pyfoto.organizer import Organize
 from pyfoto.database import File, Tag, Series, Base
-from pyfoto.config import get_config, default_config
+from pyfoto.config import get_config, get_stream_logger
 
-logger = logging.getLogger('PyFoto')
-sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - '
-                              '%(levelname)s - %(message)s')
-sh.setFormatter(formatter)
-logger.addHandler(sh)
-logger.setLevel(logging.DEBUG)
+logger = get_stream_logger('web_service')
 
 app = bottle.Bottle()
 root = os.path.abspath(os.path.dirname(__file__))
@@ -117,13 +111,13 @@ def remove_tag_from_file(file_id, tag, db):
 def ingest_files(db):
     options = bottle.request.query.decode()
     if not options.get("directory") or not os.path.exists(options["directory"]):
-        return {"error": True}
+        return {"error": True, "message": "Directory not specified"}
 
-    if options.get("type") == "video":
-        app.org.add_videos(options["directory"])
-    else:
-        app.org.add_images(options["directory"])
-    return {"error": False}
+    try:
+        for count in app.org.add_images(options["directory"]):
+            yield json.dumps({"error": False, "count": count})
+    except Exception as err:
+        return {"error": True, "message": str(err)}
 
 
 @app.route("/tag")
@@ -270,14 +264,30 @@ def get_user_arguments():
     parser.add_argument("-i", "--ip", default="localhost")
     parser.add_argument("-p", "--port", default=8080, type=int)
     parser.add_argument("-c", "--config_file", default="config.yaml")
+    parser.add_argument("--debug", default=False, action="store_true")
+    parser.add_argument("-q", "--quiet", default=False, action="store_true")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.debug and args.quiet:
+        parser.print_help()
+        raise Exception("Really? How can you be quiet and write debug?"
+                        "Try just one of those options at a time.")
+
+    return args
 
 
 def main():
     args = get_user_arguments()
 
     app.settings = get_config(args.config_file)
+
+    root_logger = logging.getLogger("PyFoto")
+
+    if args.quiet:
+        root_logger.setLevel(logging.ERROR)
+    else:
+        root_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
     engine = create_engine(app.settings.connect_string, echo=False)
 
@@ -292,7 +302,7 @@ def main():
 
     app.install(plugin)
 
-    app.org = Organize(engine)
+    app.org = Organize(engine=engine)
 
     bottle.run(app, host=args.ip, port=args.port, server="cherrypy")
 
