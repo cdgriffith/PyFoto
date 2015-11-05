@@ -17,6 +17,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.availTags = [];
     $scope.currentFilters = "";
 
+    $scope.showGallery = true;
+
     $scope.tags = [];
 
     $scope.update = function(response){
@@ -166,19 +168,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     };
 
     $scope.toggleImage = function(way) {
-        if (way == "off"){
-            $(".main-image").hide();
-            $(".image-data").hide();
-            $(".gallery").show();
-            $(".back-to-search").hide();
-            $(".search-data").show();
-        } else {
-            $(".main-image").show();
-            $(".image-data").show();
-            $(".gallery").hide();
-            $(".back-to-search").show();
-            $(".search-data").hide();
-        }
+        $scope.showGallery = way != "off";
     };
 
 
@@ -256,14 +246,5 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.toggleImage("off");
     $scope.starts();
     $scope.allTags();
-
-}]);
-
-pyfotoApp.controller('ingestController', ['$scope', '$http',  function($scope, $http) {
-
-    $scope.ingestDirectory = function(){
-
-
-    }
 
 }]);

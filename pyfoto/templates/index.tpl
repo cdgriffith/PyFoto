@@ -12,14 +12,15 @@
 
         <div class="col-md-10 left-side" style="height: 100%">
 
-            <div class="gallery">
+            <div class="gallery" ng-hide="! showGallery">
                 <div class="gallery-image" ng-repeat="image in galleryImages"
                      ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
                         ng-click="openImage(image.id)"></div>
                 <div class="more-footer col-md-12"><a ng-click="nextPage()" href="#">Load More</a></div>
             </div>
 
-            <div class="main-image" ng-style="{'background-image': 'url(item/' + currentImage + ')'}">
+            <div class="main-image" ng-hide="showGallery"
+                 ng-style="{'background-image': 'url(item/' + currentImage + ')'}">
 
                 <div class="col-md-1 left-image" ng-click="prevItem()">
                     <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
@@ -35,7 +36,8 @@
         <div class="col-lg-2 col-sm-2 col-md-2 right-side">
 
             <div class="search-area">
-                <div class="back-to-search" ng-click="toggleImage('off')">
+                <div class="back-to-search"
+                     ng-hide="! showGallery" ng-click="toggleImage('off')">
                     <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
                 </div>
 
@@ -56,7 +58,7 @@
 
             </div>
 
-            <div class="search-data">
+            <div class="search-data" ng-hide="! showGallery">
                 <div class="tag-cloud">
                     <h4 class="header">Search Tags</h4>
                     <span ng-repeat="tag in tags" class="tag" ng-click="searchTag(tag)">{{tag}}</span>
@@ -64,7 +66,7 @@
             </div>
 
 
-            <div class="image-data">
+            <div class="image-data" ng-hide="showGallery">
                 <div class="image-details">
                     <a href="/item/{{currentImage}}" download="{{currentName}}" >Download</a> |
                     <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;
