@@ -16,6 +16,7 @@ def argument_parser():
                         help="Path to config file to use")
     parser.add_argument("--debug", default=False, action="store_true")
     parser.add_argument("-q", "--quiet", default=False, action="store_true")
+    parser.add_argument("-t", "--tags", default=None, help="Tags to assign to all files")
 
     args = parser.parse_args()
 
@@ -42,8 +43,10 @@ def main():
 
     org = Organize(args.config_file)
 
+    tags = tuple() if not args.tags else [x.strip().lower().replace(" ", "-") for x in args.tags.split(",") if x.strip()]
+
     if args.directory:
-        for count in org.add_images(args.directory):
+        for count in org.add_images(args.directory, tags=tags):
             logger.info("Processed: {0}".format(count))
 
 

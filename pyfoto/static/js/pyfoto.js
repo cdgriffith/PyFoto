@@ -168,7 +168,19 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     };
 
     $scope.toggleImage = function(way) {
-        $scope.showGallery = way != "off";
+        if (way == "off"){
+            $(".main-image").hide();
+            $(".image-data").hide();
+            $(".gallery").show();
+            $(".back-to-search").hide();
+            $(".search-data").show();
+        } else {
+            $(".main-image").show();
+            $(".image-data").show();
+            $(".gallery").hide();
+            $(".back-to-search").show();
+            $(".search-data").hide();
+        }
     };
 
 

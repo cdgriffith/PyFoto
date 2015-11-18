@@ -132,7 +132,7 @@ class Organize:
         self.ensure_exists(os.path.dirname(full_path))
 
         if os.path.exists(full_path):
-            raise Exception("File already exists and should not, halting.")
+            raise Exception("File already exists and should not, halting. {0}".format(full_path))
 
         shutil.copy(file, full_path)
         new_sha256, ext, size = self.file_info(full_path)
