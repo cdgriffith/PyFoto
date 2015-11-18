@@ -15,13 +15,6 @@ tag_association_table = Table('tag_association', Base.metadata,
                                      ForeignKey('tags.id')),
                               PrimaryKeyConstraint('file_id', 'tag_id'))
 
-series_association_table = Table('series_association', Base.metadata,
-                                 Column('file_id', Integer,
-                                        ForeignKey('files.id')),
-                                 Column('series_id', Integer,
-                                        ForeignKey('series.id')),
-                                 PrimaryKeyConstraint('file_id', 'series_id'))
-
 
 class File(Base):
 
@@ -38,9 +31,9 @@ class File(Base):
     deleted = Column(Boolean, default=False)
     name = Column(String)
     description = Column(String)
+    rating = Column(Integer, default=0)
 
     tags = relationship("Tag", secondary=tag_association_table)
-    series = relationship("Series", secondary=series_association_table)
 
 
 class Tag(Base):
@@ -50,14 +43,4 @@ class Tag(Base):
     id = Column(Integer, primary_key=True)
     tag = Column(String)
     description = Column(String, default="")
-
-
-class Series(Base):
-
-    __tablename__ = 'series'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    description = Column(String, default="")
-    source = Column(String, default="")
-    url = Column(String, default="")
+    private = Column(Boolean, default=False)

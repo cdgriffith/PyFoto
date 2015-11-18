@@ -13,7 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import NoResultFound
 
 from pyfoto.organizer import Organize
-from pyfoto.database import File, Tag, Series, Base
+from pyfoto.database import File, Tag, Base
 from pyfoto.config import get_config, get_stream_logger
 
 logger = get_stream_logger('web_service')
@@ -65,6 +65,26 @@ def get_item(file_id, db):
         return bottle.abort(404, "file not found")
 
     return results
+
+
+@app.route("/file/<file_id>", method="PUT")
+def update_item(file_id, db):
+    options = bottle.request.query.decode()
+
+    try:
+        file = db.query(File).filter(File.id == int(file_id)).one()
+    except NoResultFound:
+        return bottle.abort(404, "file not found")
+
+    if "rating" in options:
+        file.rating = options['rating']
+    if "name" in options:
+        file.name = options['name']
+    if "description" in options:
+        file.description = options['description']
+
+    db.commit()
+    return {"error": False}
 
 
 @app.route("/file/<file_id>", method="DELETE")
@@ -152,26 +172,6 @@ def add_tag(tag, options, db):
     return tag_item
 
 
-@app.route("/series/<series>", method="POST")
-def add_series_route(series, db):
-    options = bottle.request.query.decode()
-    series = add_series(series, options, db)
-    return {}
-
-
-def add_series(series, options, db):
-    try:
-        series_item = db.query(Series).filter(Series.name == series).one()
-    except NoResultFound:
-        series_item = Series(name=series,
-                             description=options.get("description", ""),
-                             source=options.get("source", ""),
-                             url=options.get("url", ""))
-        db.add(series_item)
-        db.commit()
-    return series_item
-
-
 def prepare_file_items(query_return, settings):
     item_list = []
     for item in query_return:
@@ -181,7 +181,8 @@ def prepare_file_items(query_return, settings):
                           "path": item.path.replace("\\", "/"),
                           "filename": item.filename,
                           "tags": [x.tag for x in item.tags],
-                          "thumbnail": item.thumbnail.replace("\\", "/")})
+                          "thumbnail": item.thumbnail.replace("\\", "/"),
+                          "rating": item.rating})
     return {"data": item_list}
 
 
@@ -189,9 +190,6 @@ def filter_options(query, options, db):
     if options.get("tag"):
         tag = db.query(Tag).filter(Tag.tag == options['tag']).one()
         query = query.filter(File.tags.contains(tag))
-    if options.get("series"):
-        series = db.query(Series).filter(Series.name == options['series']).one()
-        query = query.filter(File.series.contains(series))
     return query
 
 
@@ -238,7 +236,7 @@ def prev_items(item_id, db):
 @app.route("/search")
 def search(db):
     options = bottle.request.query.decode()
-    query = fun_search(options["search"],db)
+    query = fun_search(options["search"], db)
 
     return prepare_file_items(query, app.settings)
 

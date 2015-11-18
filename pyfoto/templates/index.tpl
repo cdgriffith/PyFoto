@@ -35,6 +35,8 @@
 
         <div class="col-lg-2 col-sm-2 col-md-2 right-side">
 
+
+
             <div class="search-area">
                 <div class="back-to-search"
                       ng-click="toggleImage('off')">
@@ -67,7 +69,15 @@
 
 
             <div class="image-data" >
+
+
                 <div class="image-details">
+
+                                    <div class="star-rating" star-rating rating-value="currentRating"
+                     data-max="5"on-rating-selected="rateFunction(rating)"></div>
+
+                    <span>{{currentName}}</span><br />
+
                     <a href="/item/{{currentImage}}" download="{{currentName}}" >Download</a> |
                     <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;
                 </div>

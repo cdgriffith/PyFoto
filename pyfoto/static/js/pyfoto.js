@@ -5,6 +5,51 @@
 
 var pyfotoApp = angular.module('pyfotoApp', []);
 
+pyfotoApp.directive("starRating", function(){
+
+return {
+			restrict : 'A',
+			template : '<ul class="rating">'
+					 + '<li ng-repeat="star in stars" ng-class="star" ng-click="toggle($index)">'
+					 + '<span class="glyphicon glyphicon-star"></span>'
+					 + '</li>'
+					 + '</ul>',
+			scope : {
+				ratingValue : '=',
+				max : '=',
+				onRatingSelected : '&'
+			},
+			link : function(scope, elem, attrs) {
+				var updateStars = function() {
+					scope.stars = [];
+					for ( var i = 0; i < scope.max; i++) {
+						scope.stars.push({
+							filled : i < scope.ratingValue
+						});
+					}
+				};
+
+				scope.toggle = function(index) {
+					scope.ratingValue = index + 1;
+					scope.onRatingSelected({
+						rating : index + 1
+					});
+				};
+
+				scope.$watch('ratingValue',
+					function(oldVal, newVal) {
+						if (newVal >= 0) {
+							updateStars();
+						}
+					}
+				);
+			}
+		};
+
+
+});
+
+
 
 pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $http) {
     $scope.galleryImages = [];
@@ -16,10 +61,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.currentSeries = [];
     $scope.availTags = [];
     $scope.currentFilters = "";
+    $scope.currentRating = 0;
 
     $scope.showGallery = true;
 
     $scope.tags = [];
+
+
 
     $scope.update = function(response){
         $scope.currentID = response.data[0].id;
@@ -27,6 +75,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
         $scope.currentName = response.data[0].filename;
         $scope.currentTags = response.data[0].tags;
         $scope.currentSeries = response.data[0].series;
+        $scope.currentRating = response.data[0].rating;
         $scope.availTags.length = 0;
 
         angular.forEach($scope.tags, function(value){
@@ -42,6 +91,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     };
 
     $scope.updateAvailTags = function(){
+        //Makes sure 'untagged' is applied properly.
+
         $scope.availTags = [];
         angular.forEach($scope.tags, function(value){
             if($scope.currentTags.indexOf(value) == -1 && value != "untagged"){
@@ -118,10 +169,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                 $scope.tags.push($scope.tagInput);
                $scope.currentTags.push($scope.tagInput);
                 $scope.tagInput = "";
-                if($scope.tags.indexOf("untagged") != -1){
-                   $scope.tags.slice($scope.tags.indexOf("untagged"), 1);
-                }
-
+                $scope.updateAvailTags();
             });
     };
 
@@ -168,6 +216,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     };
 
     $scope.toggleImage = function(way) {
+        // This should be replaced by the angular ng-hide or ng-show with a
+        // boolean variable, but doesn't want to work for some reason.
         if (way == "off"){
             $(".main-image").hide();
             $(".image-data").hide();
@@ -240,6 +290,12 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                     });
                 }
             })
+    };
+
+    $scope.rateFunction = function(rating) {
+        //$http.put()
+        alert("We need to put something here");
+
     };
 
 

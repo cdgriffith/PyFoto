@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 import logging
-
 from pyfoto.organizer import Organize
-
 from pyfoto.config import get_stream_logger
 
 
@@ -14,9 +12,11 @@ def argument_parser():
     parser.add_argument("-d", "--directory", help="directory to ingest")
     parser.add_argument("-c", "--config-file", default="config.yaml",
                         help="Path to config file to use")
-    parser.add_argument("--debug", default=False, action="store_true")
+    parser.add_argument("--debug", dest="debug", default=False,
+                        action="store_true")
     parser.add_argument("-q", "--quiet", default=False, action="store_true")
-    parser.add_argument("-t", "--tags", default=None, help="Tags to assign to all files")
+    parser.add_argument("-t", "--tags", default=None,
+                        help="Tags to assign to all files")
 
     args = parser.parse_args()
 
@@ -29,7 +29,6 @@ def argument_parser():
 
 
 def main():
-
     args = argument_parser()
 
     root_logger = logging.getLogger("PyFoto")
@@ -43,10 +42,9 @@ def main():
 
     org = Organize(args.config_file)
 
-    tags = tuple() if not args.tags else [x.strip().lower().replace(" ", "-") for x in args.tags.split(",") if x.strip()]
+    tags = tuple() if not args.tags else [x.strip().lower().replace(" ", "-")
+                                     for x in args.tags.split(",") if x.strip()]
 
     if args.directory:
         for count in org.add_images(args.directory, tags=tags):
             logger.info("Processed: {0}".format(count))
-
-
