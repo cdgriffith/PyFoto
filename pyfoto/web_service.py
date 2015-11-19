@@ -177,9 +177,17 @@ def prepare_file_items(query_return, settings):
     for item in query_return:
         if item.deleted:
             continue
+
+        name = item.filename if not item.name else item.name
+
+        filename = name
+        if not filename.lower().endswith(".{0}".format(item.extension)):
+            filename = "{0}.{1}".format(name, item.extension)
+
         item_list.append({"id": item.id,
                           "path": item.path.replace("\\", "/"),
-                          "filename": item.filename,
+                          "name": name,
+                          "filename": filename,
                           "tags": [x.tag for x in item.tags],
                           "thumbnail": item.thumbnail.replace("\\", "/"),
                           "rating": item.rating})

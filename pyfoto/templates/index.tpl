@@ -77,7 +77,19 @@
                     <div class="star-rating" star-rating rating-value="currentRating"
                      data-max="5"on-rating-selected="rateFunction(rating)"></div>
 
-                    <span>{{currentName}}</span><br />
+                    <div class="filename">
+                        <span ng-click="showFilename = ! showFilename" ng-show="showFilename" >{{currentName}}</span>
+                        <form style="color:black;" ng-show="! showFilename"
+                              class="form-inline">
+                            <div class="form-group">
+                                <label class="sr-only" for="changeFilename">Filename</label>
+                                <input   id="changeFilename" type="text" ng-model="newName" name="filename" placeholder="{{currentName}}"  />
+                            </div>
+                            <button class="btn btn-primary">Save</button>
+                            <button ng-click="showFilename = ! showFilename" class="btn btn-danger">Cancel</button>
+                        </form>
+                    </div>
+
 
                     <a href="/item/{{currentImage}}" download="{{currentName}}" >Download</a> |
                     <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;

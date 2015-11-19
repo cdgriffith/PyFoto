@@ -29,8 +29,8 @@ class File(Base):
     filename = Column(String)
     thumbnail = Column(String)
     deleted = Column(Boolean, default=False)
-    name = Column(String)
-    description = Column(String)
+    name = Column(String, default="")
+    description = Column(String, default="")
     rating = Column(Integer, default=0)
 
     tags = relationship("Tag", secondary=tag_association_table)

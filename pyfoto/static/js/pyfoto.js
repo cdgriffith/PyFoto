@@ -64,13 +64,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.currentRating = 0;
 
     $scope.showGallery = true;
+    $scope.showFilename = true;
 
     $scope.tags = [];
 
 
 
     $scope.update = function(response){
-        console.log(response.data[0]);
         $scope.currentID = response.data[0].id;
         $scope.currentImage = response.data[0].path;
         $scope.currentName = response.data[0].filename;
@@ -84,6 +84,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                 $scope.availTags.push(value);
             }
         });
+
+        $scope.showFilename = true;
+
     };
 
     $scope.removeCurrentTag = function(tag) {
