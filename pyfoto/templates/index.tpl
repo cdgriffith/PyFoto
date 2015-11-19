@@ -73,7 +73,7 @@
 
                 <div class="image-details">
 
-                                    <div class="star-rating" star-rating rating-value="currentRating"
+                    <div class="star-rating" star-rating rating-value="currentRating"
                      data-max="5"on-rating-selected="rateFunction(rating)"></div>
 
                     <span>{{currentName}}</span><br />
@@ -97,7 +97,7 @@
                     <form ng-submit="addTagToFile()" class="form-inline">
                          <div class="form-group">
                             <label class="sr-only" for="tagInput">Name</label>
-                            <input width="66%" id="tagInput" ng-model="tagInput" type="text" placeholder="New Tag" />
+                            <input id="tagInput" ng-model="tagInput" type="text" placeholder="New Tag" />
                          </div>
                         <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
                     </form>

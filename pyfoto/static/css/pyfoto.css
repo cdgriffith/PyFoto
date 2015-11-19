@@ -45,6 +45,7 @@ body {
 .add-tag {
     position: absolute;
     bottom: 0;
+    width: 100%;
     
 }
 
@@ -152,6 +153,9 @@ body {
 
 .image-details{
     color: #fff;
+    border-bottom: #fff 1px solid;
+    margin: 0 0 10px 0;
+    padding: 0 0 5px 0;
 }
 
 .left-side {
