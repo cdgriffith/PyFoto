@@ -3,17 +3,18 @@
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (Column, Integer, String, Table, ForeignKey,
-                        PrimaryKeyConstraint, Boolean)
+                        PrimaryKeyConstraint, Boolean, DateTime)
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 
 Base = declarative_base()
 
-tag_association_table = Table('tag_association', Base.metadata,
-                              Column('file_id', Integer,
-                                     ForeignKey('files.id')),
-                              Column('tag_id', Integer,
-                                     ForeignKey('tags.id')),
-                              PrimaryKeyConstraint('file_id', 'tag_id'))
+tag_ass_table = Table('tag_association',
+                      Base.metadata,
+                      Column('file_id', Integer, ForeignKey('files.id')),
+                      Column('tag_id', Integer, ForeignKey('tags.id')),
+                      PrimaryKeyConstraint('file_id', 'tag_id'))
 
 
 class File(Base):
@@ -25,15 +26,17 @@ class File(Base):
     sha256 = Column(String)
     extension = Column(String)
     size = Column(Integer)
-    type = Column(String)
     filename = Column(String)
     thumbnail = Column(String)
     deleted = Column(Boolean, default=False)
     name = Column(String, default="")
+    width = Column(Integer)
+    height = Column(Integer)
     description = Column(String, default="")
     rating = Column(Integer, default=0)
+    ingested_date = Column(DateTime, default=func.now())
 
-    tags = relationship("Tag", secondary=tag_association_table)
+    tags = relationship("Tag", secondary=tag_ass_table)
 
 
 class Tag(Base):

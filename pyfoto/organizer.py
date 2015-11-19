@@ -114,7 +114,7 @@ class Organize:
         return add_tags
 
     def ingest(self, file: str, ingest_path: str, sha256: str,
-               file_type: str="image", tags: tuple=()) -> None:
+                tags: tuple=()) -> None:
         """
         Copy a file to the new location and verify it was
         copied completely with the hash. Also create a thumbnail of the item.
@@ -122,7 +122,6 @@ class Organize:
         :param file:
         :param ingest_path:
         :param sha256:
-        :param file_type:
         :param tags:
         :return:
         """
@@ -132,7 +131,8 @@ class Organize:
         self.ensure_exists(os.path.dirname(full_path))
 
         if os.path.exists(full_path):
-            raise Exception("File already exists and should not, halting. {0}".format(full_path))
+            raise Exception("File already exists and should not, halting. "
+                            "{0}".format(full_path))
 
         shutil.copy(file, full_path)
         new_sha256, ext, size = self.file_info(full_path)
@@ -146,17 +146,17 @@ class Organize:
         thumb_dir = os.path.join(self.config.storage_directory, thumb_path)
 
         try:
-            self.create_thumbnail(full_path, thumb_dir)
+            width, height = self.create_thumbnail(full_path, thumb_dir)
         except Exception as err:
             logger.exception("Count not create thumbnail for {0}, will "
                              "redirect to main image. "
                              "Error: {1}".format(file, err))
             thumb_path = ingest_path
+            width, height = 0, 0
 
         new_file = File(path=ingest_path, sha256=sha256, extension=ext,
-                        size=size, type=file_type,
-                        filename=os.path.basename(file),
-                        thumbnail=thumb_path,
+                        size=size, filename=os.path.basename(file),
+                        thumbnail=thumb_path, width=width, height=height,
                         tags=self.tag_strings_to_tags(tags))
 
         self.session.add(new_file)
@@ -213,8 +213,7 @@ class Organize:
                                            size=size))
 
             try:
-                self.ingest(file, ingest_path, sha256,
-                            file_type="image", tags=tags)
+                self.ingest(file, ingest_path, sha256, tags=tags)
             except Exception as err:
                 self.save_config()
                 self.session.commit()
@@ -225,9 +224,10 @@ class Organize:
         yield total
 
     def create_thumbnail(self, file: str, out_path: str,
-                         width: int=250, height: int=250) -> None:
+                         width: int=250, height: int=250) -> tuple:
         """
-        Create a thumbnail with Pillow then save it to the out_path.
+        Create a thumbnail with Pillow then save it to the out_path. It will
+        return the original image's width and height.
 
         :param file:
         :param out_path:
@@ -238,11 +238,12 @@ class Organize:
 
         self.ensure_exists(os.path.dirname(out_path))
         im = Image.open(file)
+        org_width, org_height = im.size
         im.thumbnail((width, height))
         try:
             im.save(out_path, "JPEG")
         except OSError:
             im.convert('RGB').save(out_path, "JPEG")
-
+        return org_width, org_height
 
 
