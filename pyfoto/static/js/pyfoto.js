@@ -53,29 +53,27 @@ return {
 
 pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $http) {
     $scope.galleryImages = [];
+    $scope.tags = [];
+    $scope.availTags = [];
 
     $scope.currentImage = "";
     $scope.currentID = 1;
     $scope.currentName = "";
+    $scope.currentFilename = "";
     $scope.currentTags = [];
-    $scope.currentSeries = [];
-    $scope.availTags = [];
     $scope.currentFilters = "";
     $scope.currentRating = 0;
 
     $scope.showGallery = true;
     $scope.showFilename = true;
 
-    $scope.tags = [];
-
-
 
     $scope.update = function(response){
         $scope.currentID = response.data[0].id;
         $scope.currentImage = response.data[0].path;
-        $scope.currentName = response.data[0].filename;
+        $scope.currentName = response.data[0].name;
+        $scope.currentFilename = response.data[0].filename;
         $scope.currentTags = response.data[0].tags;
-        $scope.currentSeries = response.data[0].series;
         $scope.currentRating = response.data[0].rating;
         $scope.availTags.length = 0;
 
@@ -168,7 +166,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             return false;
         }
 
-        $http.post("/file/" + $scope.currentID + "/tag/" + $scope.tagInput)
+        $http.post("/file/" + $scope.currentID + "/tag/" + $scope.tagInput, {})
         .success(function (response) {
                 $scope.tags.push($scope.tagInput);
                $scope.currentTags.push($scope.tagInput);
@@ -183,7 +181,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             return false;
         }
         if(action=='add'){
-            $http.post("/file/" + $scope.currentID + "/tag/" + tag)
+            $http.post("/file/" + $scope.currentID + "/tag/" + tag, {})
             .success(function (response) {
                    $scope.currentTags.push(tag);
                     $scope.updateAvailTags();
@@ -302,6 +300,23 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             .error(function(data){
            alert("Not able to update file rating");
         });
+    };
+
+    $scope.updateFilename = function(){
+      if ($scope.newName == undefined || $scope.newName == ""){
+          $scope.showFilename = true;
+          return false;
+      }
+
+        $http.put("/file/" + $scope.currentID, {name: $scope.newName})
+            .success(function(data){
+                $scope.currentName = $scope.newName;
+                $scope.showFilename = true;
+            })
+            .error(function(data){
+           alert("Not able to update filename");
+        });
+
     };
 
 

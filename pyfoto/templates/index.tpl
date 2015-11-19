@@ -85,13 +85,13 @@
                                 <label class="sr-only" for="changeFilename">Filename</label>
                                 <input   id="changeFilename" type="text" ng-model="newName" name="filename" placeholder="{{currentName}}"  />
                             </div>
-                            <button class="btn btn-primary">Save</button>
+                            <button ng-click="updateFilename()" class="btn btn-primary">Save</button>
                             <button ng-click="showFilename = ! showFilename" class="btn btn-danger">Cancel</button>
                         </form>
                     </div>
 
 
-                    <a href="/item/{{currentImage}}" download="{{currentName}}" >Download</a> |
+                    <a href="/item/{{currentImage}}" download="{{currentFilename}}" >Download</a> |
                     <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;
                 </div>
 
