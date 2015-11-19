@@ -148,7 +148,13 @@ body {
 
 .more-footer {
     text-align: center;
-
+    height: 50px;
+    width: 100%;
+    background: #000;
+    opacity: .5;
+    cursor: pointer;
+    color: #fff;
+    font-size: 24px;
 }
 
 .image-details{

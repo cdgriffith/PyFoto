@@ -16,7 +16,8 @@
                 <div class="gallery-image" ng-repeat="image in galleryImages"
                      ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
                         ng-click="openImage(image.id)"></div>
-                <div class="more-footer col-md-12"><a ng-click="nextPage()" href="#">Load More</a></div>
+                <div class="more-footer col-md-12" ng-click="nextPage()">Load
+                    More</div>
             </div>
 
             <div class="main-image"
