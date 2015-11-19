@@ -70,6 +70,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
 
     $scope.update = function(response){
+        console.log(response.data[0]);
         $scope.currentID = response.data[0].id;
         $scope.currentImage = response.data[0].path;
         $scope.currentName = response.data[0].filename;
@@ -293,9 +294,11 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     };
 
     $scope.rateFunction = function(rating) {
-        //$http.put()
-        alert("We need to put something here");
 
+        $http.put("/file/" + $scope.currentID, {rating: rating})
+            .error(function(data){
+           alert("Not able to update file rating");
+        });
     };
 
 

@@ -69,7 +69,7 @@ def get_item(file_id, db):
 
 @app.route("/file/<file_id>", method="PUT")
 def update_item(file_id, db):
-    options = bottle.request.query.decode()
+    options = bottle.request.json
 
     try:
         file = db.query(File).filter(File.id == int(file_id)).one()
