@@ -79,6 +79,7 @@ body {
     background-position: center center;
     background-repeat: no-repeat;
     float:left;
+    margin: 2px;
 }
 
 .main-image {
@@ -195,3 +196,9 @@ ul.rating {
   color: #21568b;
 }
 
+.show-filename {
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}

@@ -188,6 +188,8 @@ def prepare_file_items(query_return, settings):
                           "path": item.path.replace("\\", "/"),
                           "name": name,
                           "filename": filename,
+                          "width": item.width,
+                          "height": item.height,
                           "tags": [x.tag for x in item.tags],
                           "thumbnail": item.thumbnail.replace("\\", "/"),
                           "rating": item.rating})

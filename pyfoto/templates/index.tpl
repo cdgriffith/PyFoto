@@ -21,7 +21,7 @@
             </div>
 
             <div class="main-image"
-                 ng-style="{'background-image': 'url(item/' + currentImage + ')'}">
+                 ng-style="{'background-image': 'url(/item/' + currentImage + ')'}">
 
                 <div class="col-md-1 left-image" ng-click="prevItem()">
                     <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
@@ -35,7 +35,6 @@
         </div>
 
         <div class="col-lg-2 col-sm-2 col-md-2 right-side">
-
 
 
             <div class="search-area">
@@ -78,7 +77,8 @@
                      data-max="5"on-rating-selected="rateFunction(rating)"></div>
 
                     <div class="filename">
-                        <span ng-click="showFilename = ! showFilename" ng-show="showFilename" >{{currentName}}</span>
+                        <div class="show-filename" ng-click="showFilename = ! showFilename"
+                               ng-show="showFilename" >{{currentName}}</div>
                         <form style="color:black;" ng-show="! showFilename"
                               class="form-inline">
                             <div class="form-group">
