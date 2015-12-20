@@ -137,8 +137,6 @@ def remove_tag_from_file(file_id, tag, db):
         return {"error": True}
 
     file_item.tags.remove(tag_item)
-    if not file_item.tags:
-        file_item.tags.append(db.query(Tag).filter(Tag.tag == "untagged").one())
 
     db.commit()
     return {"error": False}
@@ -204,43 +202,41 @@ def filter_options(query, options, db):
 
 
 def fun_search(search, db):
-    query = db.query(File).filter(
-        File.tags.any(Tag.tag.in_(search.split(" ")))).limit(100).all()
+    if search == "untagged":
+        query = db.query(File).filter(File.tags == None).limit(1000).all()
+    else:
+        query = db.query(File).filter(
+            File.tags.any(Tag.tag.in_(search.split(" ")))).limit(1000).all()
     return query
+
+
+def directional_item(item_id, db, forward=True, terms=None, count=1):
+
+    query = db.query(File).order_by(File.id.asc() if forward else File.id.desc()).filter(
+            File.deleted == 0).filter(File.id > int(item_id) if forward else File.id < int(item_id))
+
+    if terms and "untagged" in terms:
+        query = query.filter(File.tags == None)
+    elif terms:
+        query = query.filter(File.tags.any(Tag.tag.in_(terms.split(" "))))
+
+    query = query.limit(count).all()
+
+    return prepare_file_items(query, app.settings)
 
 
 @app.route("/next/<item_id>")
 def next_items(item_id, db):
     options = bottle.request.query.decode()
 
-    if options.get("search"):
-        query = db.query(File).order_by(File.id.asc()).filter(
-            File.deleted == 0).filter(File.id > int(item_id)).filter(
-            File.tags.any(Tag.tag.in_(options["search"].split(" ")))).limit(
-            1 if not options.get("count") else int(options['count'])).all()
-    else:
-        query = db.query(File).order_by(File.id.asc()).filter(
-            File.deleted == 0).filter(File.id > int(item_id)).limit(
-            1 if not options.get("count") else int(options['count'])).all()
-
-    return prepare_file_items(query, app.settings)
+    return directional_item(item_id, db, True, options.get("search"), int(options.get("count", 1)))
 
 
 @app.route("/prev/<item_id>")
 def prev_items(item_id, db):
     options = bottle.request.query.decode()
 
-    if options.get("search"):
-        query = db.query(File).order_by(File.id.desc()).filter(
-            File.deleted == 0).filter(File.id < int(item_id)).filter(
-            File.tags.any(Tag.tag.in_(options["search"].split(" ")))).limit(
-            1 if not options.get("count") else int(options['count'])).all()
-    else:
-        query = db.query(File).order_by(File.id.desc()).filter(
-            File.deleted == 0).filter(File.id < int(item_id)).limit(
-            1 if not options.get("count") else int(options['count'])).all()
-
-    return prepare_file_items(query, app.settings)
+    return directional_item(item_id, db, False, options.get("search"), int(options.get("count", 1)))
 
 
 @app.route("/search")

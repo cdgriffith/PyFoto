@@ -97,9 +97,6 @@ class Organize:
 
         tags = list(tags)
 
-        if not tags:
-            tags.append("untagged")
-
         add_tags = []
         for tag in tags:
             try:
