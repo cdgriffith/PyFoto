@@ -201,13 +201,21 @@ def filter_options(query, options, db):
     return query
 
 
-def fun_search(search, db):
-    if search == "untagged":
+def tag_search(term, db):
+    if term == "untagged":
         query = db.query(File).filter(File.tags == None).limit(1000).all()
     else:
         query = db.query(File).filter(
-            File.tags.any(Tag.tag.in_(search.split(" ")))).limit(1000).all()
+            File.tags.any(Tag.tag.in_(term.split(" ")))).limit(1000).all()
     return query
+
+
+def rating_search(rating, db, greater=True):
+    return db.query(File).filter(File.rating >= rating if greater else File.rating <= rating).limit(1000).all()
+
+
+def name_search(term, db):
+    return db.query(File).filter(File.name == term).limit(1000).all()
 
 
 def directional_item(item_id, db, forward=True, terms=None, count=1):
@@ -229,20 +237,29 @@ def directional_item(item_id, db, forward=True, terms=None, count=1):
 def next_items(item_id, db):
     options = bottle.request.query.decode()
 
-    return directional_item(item_id, db, True, options.get("search"), int(options.get("count", 1)))
+    return directional_item(item_id, db, True, options.get("search"),
+                            int(options.get("count", 1)))
 
 
 @app.route("/prev/<item_id>")
 def prev_items(item_id, db):
     options = bottle.request.query.decode()
 
-    return directional_item(item_id, db, False, options.get("search"), int(options.get("count", 1)))
+    return directional_item(item_id, db, False, options.get("search"),
+                            int(options.get("count", 1)))
 
 
 @app.route("/search")
-def search(db):
+def search_request(db):
     options = bottle.request.query.decode()
-    query = fun_search(options["search"], db)
+    search_type = options.get("search_type", "tag")
+
+    if search_type == "rating":
+        query = rating_search(int(options["search"]), db, greater=options.get("greater", True))
+    elif search_type == "name":
+        query = None
+    else:
+        query = tag_search(options["search"], db)
 
     return prepare_file_items(query, app.settings)
 

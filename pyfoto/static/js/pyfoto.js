@@ -63,6 +63,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.currentTags = [];
     $scope.currentFilters = "";
     $scope.currentRating = 0;
+    $scope.searchRating = 0;
 
     $scope.showGallery = true;
     $scope.showFilename = true;
@@ -237,6 +238,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
 
     $scope.searchImages = function(){
+        $scope.searchRating = 0;
         if ($scope.searchInput == "" || $scope.searchInput == undefined){
             $http.get("/file")
               .success(function (response) {
@@ -300,6 +302,18 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             .error(function(data){
            alert("Not able to update file rating");
         });
+    };
+
+    $scope.searchRate = function(rating) {
+
+        $http.get("/search?search=" + rating + "&search_type=rating")
+            .success(function (response) {
+                $scope.toggleImage("off");
+                $scope.galleryImages = response.data;
+                $scope.currentFilters = "star rating";
+                $scope.searchInput = "";
+            });
+
     };
 
     $scope.updateFilename = function(){

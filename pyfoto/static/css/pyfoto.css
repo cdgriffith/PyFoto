@@ -202,3 +202,7 @@ ul.rating {
     overflow: hidden;
     white-space: nowrap;
 }
+
+.search-area .rating .filled {
+    color: #e38d13;
+}

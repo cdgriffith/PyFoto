@@ -52,6 +52,9 @@
                         <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
                     </form>
 
+                <div class="star-rating" star-rating rating-value="searchRating"
+                     data-max="5"on-rating-selected="searchRate(rating)"></div>
+
                 <div class="current-search" ng-hide="currentFilters == undefined || currentFilters == '' ">
                     <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"
                           ng-click="searchTag('')"></span> Current Search:
