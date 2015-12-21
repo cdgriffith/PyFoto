@@ -66,7 +66,7 @@
             <div class="search-data" >
                 <div class="tag-cloud">
                     <h4 class="header">Search Tags</h4>
-                    <span ng-repeat="tag in tags" class="tag" ng-click="searchTag(tag)">{{tag}}</span>
+                    <span ng-repeat="tag in tags" class="tag" ng-click="searchTag(tag)">{{tag.tag}}</span>
                 </div>
             </div>
 
@@ -100,12 +100,12 @@
 
                 <div class="tag-cloud">
                     <h4 class="header">Tags</h4>
-                    <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag"
+                    <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag.tag"
                           ng-click="modifyTag(tag, 'remove')"></span>
                 </div>
                 <div class="tag-cloud">
                     <h5 class="header">Available</h5>
-                    <span ng-repeat="tag in availTags" class="tag" ng-bind="tag"
+                    <span ng-repeat="tag in availTags" class="tag" ng-bind="tag.tag"
                           ng-click="modifyTag(tag, 'add')"></span>
                 </div>
 

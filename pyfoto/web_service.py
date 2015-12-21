@@ -147,8 +147,8 @@ def view_tags(db):
     tags = db.query(Tag).all()
     tag_list = []
     for tag in tags:
-        tag_list.append(tag.tag)
-    tag_list.sort()
+        tag_list.append({"tag": tag.tag, "private": tag.private})
+    tag_list.sort(key=lambda x: x["tag"])
     return {"data": tag_list}
 
 
@@ -188,7 +188,7 @@ def prepare_file_items(query_return, settings):
                           "filename": filename,
                           "width": item.width,
                           "height": item.height,
-                          "tags": [x.tag for x in item.tags],
+                          "tags": [{"tag": x.tag, "private": bool(x.private)} for x in item.tags],
                           "thumbnail": item.thumbnail.replace("\\", "/"),
                           "rating": item.rating})
     return {"data": item_list}
