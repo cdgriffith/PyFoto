@@ -2,6 +2,13 @@
  * Created by chris on 8/22/2015.
  */
 
+function objIndexOf(myArray, searchTerm, property) {
+    for(var i = 0, len = myArray.length; i < len; i++) {
+        if (myArray[i][property] === searchTerm) return i;
+    }
+    return -1;
+}
+
 
 var pyfotoApp = angular.module('pyfotoApp', []);
 
@@ -78,24 +85,26 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
         $scope.currentFilename = response.data[0].filename;
         $scope.currentRating = response.data[0].rating;
         $scope.availTags.length = 0;
-
-        angular.forEach($scope.tags, function(item){
-            if($scope.currentTags.indexOf(item.tag) == -1 && item.tag != "untagged"){
-                $scope.availTags.push(item);
-            }
-        });
+        $scope.currentTags.length = 0;
+        $scope.privateTags.length = 0;
 
         angular.forEach(response.data[0].tags, function(item){
-           if(item.private == true){
+           if(item.private == false){
                $scope.currentTags.push(item);
            } else {
                $scope.privateTags.push(item);
            }
         });
 
-        $scope.showFilename = true;
+        angular.forEach($scope.tags, function(item){
+            if(objIndexOf($scope.currentTags, item.tag, "tag") == -1 &&
+                objIndexOf($scope.privateTags, item.tag, "tag") == -1 &&
+                item.tag != "untagged"){
+                $scope.availTags.push(item);
+            }
+        });
 
-        console.log($scope.currentTags);
+        $scope.showFilename = true;
 
     };
 
@@ -107,19 +116,17 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.updateAvailTags = function(){
         //Makes sure 'untagged' is applied properly.
 
-
-
         $scope.availTags = [];
         angular.forEach($scope.tags, function(value){
             if($scope.currentTags.indexOf(value) == -1 && value.tag != "untagged"){
                 $scope.availTags.push(value);
             }
         });
-        if ($scope.currentTags.length == 0) {
+        /*if ($scope.currentTags.length == 0) {
             $scope.currentTags.push($scope.untagged);
         } else if ($scope.currentTags.indexOf($scope.untagged) > -1) {
             $scope.removeCurrentTag($scope.untagged);
-        }
+        }*/
 
         $scope.availTags.sort();
     };
@@ -218,8 +225,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                 angular.forEach(response.data, function(value){
                    $scope.tags.push(value);
                 });
-                console.log($scope.tags);
             });
+        $scope.tags.push($scope.untagged);
     };
 
 

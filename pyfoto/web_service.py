@@ -114,10 +114,6 @@ def add_tag_to_file(file_id, tag, db):
     except NoResultFound:
         return bottle.abort(404, "file not found")
     else:
-        untagged = db.query(Tag).filter(Tag.tag == "untagged").one()
-        if untagged in file.tags:
-            file.tags.remove(untagged)
-
         if not (tag in file.tags):
             file.tags.append(tag)
             db.commit()
