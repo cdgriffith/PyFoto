@@ -151,8 +151,10 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
     $scope.nextItem = function(){
         var url = "/next/" + $scope.currentID + "?count=1";
-        if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
-            url += "&search="+$scope.currentFilters;
+        if ($scope.currentFilters != "" && $scope.currentFilters != undefined && $scope.currentFilters != "star rating"){
+            url += "&search=" + $scope.currentFilters;
+        } else if ($scope.currentFilters == "star rating"){
+            url += "&searchType=rating" + "&search=" +$scope.searchRating;
         }
         $http.get(url)
             .success(function (response) {
@@ -167,9 +169,11 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
     $scope.prevItem = function(){
         var url = "/prev/" + $scope.currentID + "?count=1";
-            if ($scope.currentFilters != ""  && $scope.currentFilters != undefined){
+            if ($scope.currentFilters != ""  && $scope.currentFilters != undefined && $scope.currentFilters != "star rating"){
                 url += "&search="+$scope.currentFilters;
-            }
+        } else if ($scope.currentFilters == "star rating"){
+            url += "&searchType=rating" + "&search=" +$scope.searchRating;
+        }
 
         $http.get(url)
             .success(function (response) {

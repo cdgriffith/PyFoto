@@ -243,4 +243,32 @@ class Organize:
             im.convert('RGB').save(out_path, "JPEG")
         return org_width, org_height
 
+    def pull_deleted(self, move_dir=None):
+        import shutil
+        if not move_dir:
+            move_dir = os.path.join(self.config.storage_directory, os.path.pardir, "pyfoto_deleted")
+        self.ensure_exists(move_dir)
+        all_deleted = self.session.query(File).filter(File.deleted == 1).filter(File.path != None).all()
+        logger.info("{} deleted files about to be processed".format(len(all_deleted)))
+        for item in all_deleted:
+            if item.path and os.path.exists(os.path.join(self.config.storage_directory, item.path)):
+                shutil.move(os.path.join(self.config.storage_directory, item.path), os.path.join(move_dir, "{}.{}".format(item.sha256, item.extension)))
+                item.path = None
+                item.tags = None
+        self.session.commit()
 
+    def pull_edit(self, move_dir=None, delete=True):
+        import shutil
+        if not move_dir:
+            move_dir = os.path.join(self.config.storage_directory, os.path.pardir, "pyfoto_edit")
+        self.ensure_exists(move_dir)
+        all_edits = self.session.query(File).filter(File.tags.any(Tag.tag == "edit")).all()
+        logger.info("{} edited files about to be processed".format(len(all_edits)))
+        for item in all_edits:
+            if item.path and os.path.exists(os.path.join(self.config.storage_directory, item.path)):
+                shutil.move(os.path.join(self.config.storage_directory, item.path), os.path.join(move_dir, "{}.{}".format(item.sha256, item.extension)))
+                if delete:
+                    item.deleted = 1
+                    item.tags = None
+                    item.path = None
+        self.session.commit()
