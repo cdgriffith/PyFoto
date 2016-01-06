@@ -58,7 +58,7 @@ return {
 
 
 
-pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $http) {
+pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  function($scope, $http, $interval) {
     $scope.galleryImages = [];
     $scope.tags = [];
     $scope.availTags = [];
@@ -76,7 +76,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
 
     $scope.showGallery = true;
     $scope.showFilename = true;
-
+    $scope.scroller = null;
+    $scope.scrolling = false;
 
     $scope.update = function(response){
         $scope.currentID = response.data[0].id;
@@ -159,7 +160,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
-                    return false;
+                    $scope.scrollOff();
                 }
                 else {
                     $scope.update(response);
@@ -181,6 +182,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
                     return false;
                 } else {
                     $scope.update(response);
+                    return true;
                 }
             })
     };
@@ -253,6 +255,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
             $(".gallery").show();
             $(".back-to-search").hide();
             $(".search-data").show();
+            $scope.scrollOff();
         } else {
             $(".main-image").show();
             $(".image-data").show();
@@ -363,6 +366,19 @@ pyfotoApp.controller('indexController', ['$scope', '$http',  function($scope, $h
     $scope.searchTag = function(tag){
         $scope.searchInput = tag.tag;
         $scope.searchImages();
+    };
+
+
+
+    $scope.scrollOn = function(){
+        $scope.scroller = $interval(function(){
+            $scope.nextItem();
+        }, 1500);
+
+    };
+
+    $scope.scrollOff = function(){
+        $interval.cancel($scope.scroller);
     };
 
     var $doc = angular.element(document);
