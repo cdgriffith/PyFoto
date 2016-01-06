@@ -76,10 +76,10 @@
 
                 <div class="image-details">
                 <div class="image-controls">
-                    <span ng-click="scrollOn(); scrolling=true;" ng-hide="scrolling==true"
-                          class="glyphicon glyphicon-play" ></span>
-                    <span ng-click="scrollOff(); scrolling=false" ng-hide="scrolling==false"
-                          class="glyphicon glyphicon-stop" ></span>
+                    <span title="Play" ng-click="scrollOn(); scrolling=true;" ng-hide="scrolling==true"
+                          class="glyphicon glyphicon-play point" ></span>
+                    <span title="Stop" ng-click="scrollOff(); scrolling=false" ng-hide="scrolling==false"
+                          class="glyphicon glyphicon-stop point" ></span>
                 </div>
                     <div class="star-rating" star-rating rating-value="currentRating"
                      data-max="5"on-rating-selected="rateFunction(rating)"></div>

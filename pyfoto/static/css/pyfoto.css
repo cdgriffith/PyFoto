@@ -206,3 +206,7 @@ ul.rating {
 .search-area .rating .filled {
     color: #e38d13;
 }
+
+.point {
+    cursor: pointer;
+}
