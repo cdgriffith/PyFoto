@@ -56,34 +56,101 @@ return {
 
 });
 
-pyfotoApp.run(function($rootScope, $location) {
-    /* polluting the root scope to a minimum. Could do directives, but that just adds overhead */
-        $rootScope.searchRating = 0;
+pyfotoApp.run(function($rootScope, $location, $http) {
+    /* polluting the root scope to a minimum. */
+    $rootScope.globals = {
+        tags: [],
+        currentFilters: null,
+        searchRating: 0
+        };
 
-        $rootScope.performTagSearch = function() {
-            $location.path('/search').search('tags', $rootScope.searchInput);
-        };
-        $rootScope.performRatingSearch = function(rating) {
-            $location.path('/search').search('rating', rating);
-        };
+    $rootScope.pushUniqueTag = function(tag, my_array){
+        if (my_array == undefined){
+            my_array = $rootScope.globals.tags;
+        }
+        if (objIndexOf(my_array, "tag", tag.tag) == -1) {
+            my_array.push(tag);
+        }
+    };
+
+    // This is here because we should only have to get all tags once, hopefully, kinda
+    $http.get("/tag")
+        .success(function (response) {
+            angular.forEach(response.data, function(value){
+                $rootScope.pushUniqueTag(value);
+            });
+        });
+    $rootScope.pushUniqueTag({tag: "untagged", private: 0});
+
 });
 
+pyfotoApp.controller('searchController', ['$scope', '$http', '$routeParams', '$rootScope', '$location', function($scope, $http, $routeParams, $rootScope, $location) {
+        $scope.globals = $rootScope.globals;
 
-pyfotoApp.controller('searchController', ['$scope', '$http', '$routeParams',  function($scope, $http, $routeParams) {
+        $scope.performSearch = function(term) {
+            $location.url('/search').search('search', term);
+        };
+
+}]);
+
+pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
     $scope.search_tags = $routeParams.tags;
-    $scope.search_rating = $routeParams.ratings;
+    $scope.search_rating = $routeParams.rating;
+    $scope.search_string = $routeParams.search;
+    $scope.globals = $rootScope.globals;
 
-    console.log($scope.search_tags);
-    console.log($scope.search_rating);
+    $scope.searchRating = $scope.search_rating || 0;
+    $scope.galleryImages = [];
+
+
+    if($scope.search_tags == undefined && $scope.search_rating == undefined && $scope.search_string == undefined){
+            $http.get("/file")
+              .success(function (response) {
+                    $scope.galleryImages = response.data;
+                    $scope.globals.currentFilters = null;
+                });
+
+    } else if ($scope.search_string != undefined) {
+
+        $http.get("/search?search=" + $scope.search_string)
+            .success(function (response) {
+                $scope.galleryImages = response.data;
+                $scope.currentFilters = {string: $scope.search_string};
+            });
+    } else if ($scope.search_rating != undefined) {
+        $http.get("/search?search=" + $scope.search_rating + "&search_type=rating")
+            .success(function (response) {
+                $scope.galleryImages = response.data;
+                $scope.currentFilters = {rating: $scope.search_rating};
+            });
+    } else {
+        $http.get("/search?search=" + $scope.search_tags)
+            .success(function (response) {
+                $scope.galleryImages = response.data;
+                $scope.currentFilters = {tags: $scope.search_tags};
+            });
+    }
+
+    $scope.performRatingSearch = function(rating) {
+        $location.url('/search').search('rating', rating);
+    };
+
+
+    $scope.searchRate = function(rating) {
+
+
+
+    };
+
 
 }]);
 
 
 pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  function($scope, $http, $interval) {
-    $scope.galleryImages = [];
-    $scope.tags = [];
     $scope.availTags = [];
     $scope.untagged = {tag: "untagged", private: 0};
+
+    $scope.globals = $rootScope.globals;
 
     $scope.currentImage = "";
     $scope.currentID = 1;
@@ -95,7 +162,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  functi
     $scope.currentRating = 0;
     $scope.searchRating = 0;
 
-    $scope.showGallery = true;
     $scope.showFilename = true;
     $scope.scroller = null;
     $scope.scrolling = false;
@@ -267,49 +333,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  functi
         }
     };
 
-    $scope.toggleImage = function(way) {
-        // This should be replaced by the angular ng-hide or ng-show with a
-        // boolean variable, but doesn't want to work for some reason.
-        if (way == "off"){
-            $(".main-image").hide();
-            $(".image-data").hide();
-            $(".gallery").show();
-            $(".back-to-search").hide();
-            $(".search-data").show();
-            $scope.scrollOff();
-        } else {
-            $(".main-image").show();
-            $(".image-data").show();
-            $(".gallery").hide();
-            $(".back-to-search").show();
-            $(".search-data").hide();
-        }
-    };
 
-
-    $scope.searchImages = function(){
-        $scope.searchRating = 0;
-        if ($scope.searchInput == "" || $scope.searchInput == undefined){
-            $http.get("/file")
-              .success(function (response) {
-                    $scope.toggleImage("off");
-                   $scope.galleryImages = response.data;
-                    $scope.currentFilters = $scope.searchInput;
-                    $scope.searchInput = "";
-                });
-
-        } else {
-
-            $http.get("/search?search=" + $scope.searchInput)
-                .success(function (response) {
-                    $scope.toggleImage("off");
-                    $scope.galleryImages = response.data;
-                    $scope.currentFilters = $scope.searchInput;
-                    $scope.searchInput = "";
-                });
-        }
-
-    };
 
     $scope.openImage = function(file_id){
         $http.get("/file/" + file_id)
@@ -319,7 +343,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  functi
 
                 } else {
                     $scope.update(response);
-                    $scope.toggleImage("on");
                 }
             })
     };
@@ -354,17 +377,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  functi
         });
     };
 
-    $scope.searchRate = function(rating) {
 
-        $http.get("/search?search=" + rating + "&search_type=rating")
-            .success(function (response) {
-                $scope.toggleImage("off");
-                $scope.galleryImages = response.data;
-                $scope.currentFilters = "star rating";
-                $scope.searchInput = "";
-            });
-
-    };
 
     $scope.updateFilename = function(){
       if ($scope.newName == undefined || $scope.newName == ""){
@@ -422,8 +435,8 @@ pyfotoApp.config(['$routeProvider', function ($routeProvider) {
             redirectTo: '/search'
         })
         .when('/search', {
-            templateUrl: '/template/search.html',
-            controller: 'searchController'
+            templateUrl: '/template/gallery.html',
+            controller: 'galleryController'
         })
         .when('/image/:imageId', {
             templateUrl: '/template/image.html',
