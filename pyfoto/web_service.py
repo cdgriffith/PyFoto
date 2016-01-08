@@ -33,9 +33,15 @@ def static_file(filename, db):
                               root=os.path.join(root, "static"))
 
 
+@app.route("/template/<template>")
+def static_template(template, db):
+    return bottle.static_file(filename=template,
+                              root=os.path.join(root, "templates"))
+
+
 # noinspection PyUnresolvedReferences
 @app.route("/item/<filename:path>")
-def static_file(filename, db):
+def static_image(filename, db):
     if filename.startswith(app.settings.storage_directory):
         filename = filename[len(app.settings.storage_directory) + 1:]
     return bottle.static_file(filename,

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/bootstrap-theme.css">
+    <link rel="stylesheet" href="/static/css/pyfoto.css">
+</head>
+<body>
+
+  <body ng-app="pyfotoApp">
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 col-sm-10 col-md-10 left-side">
+                <div ng-view></div>
+            </div>
+
+            <div class="col-lg-2 col-sm-2 col-md-2 right-side">
+
+                <div class="search-area">
+                    <a class="back-to-search" href="#/search">
+                        <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
+                    </a>
+
+                    <form ng-submit="performTagSearch()" class="form-inline">
+                         <div class="form-group">
+                            <label class="sr-only" for="searchInput">search</label>
+                            <input id="searchInput" ng-model="searchInput" type="text"
+                                   placeholder="Search" />
+                         </div>
+                        <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
+                    </form>
+
+                    <div class="star-rating" star-rating rating-value="searchRating"
+                         data-max="5"on-rating-selected="performRatingSearch(rating)"></div>
+
+                    <div class="current-search" ng-hide="currentFilters == undefined || currentFilters == '' ">
+                        <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"
+                              ng-click="searchTag('')"></span> Current Search:
+                        {{currentFilters}}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+        <script src="/static/js/jquery-2.1.4.js"></script>
+        <script src="/static/js/angular.js"></script>
+        <script src="/static/js/angular-route.min.js"></script>
+        <script src="/static/js/bootstrap.js"></script>
+        <script src="/static/js/pyfoto.js"></script>
+  </body>
+</html>

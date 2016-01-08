@@ -10,7 +10,7 @@ function objIndexOf(myArray, searchTerm, property) {
 }
 
 
-var pyfotoApp = angular.module('pyfotoApp', []);
+var pyfotoApp = angular.module('pyfotoApp', ['ngRoute']);
 
 pyfotoApp.directive("starRating", function(){
 
@@ -56,6 +56,27 @@ return {
 
 });
 
+pyfotoApp.run(function($rootScope, $location) {
+    /* polluting the root scope to a minimum. Could do directives, but that just adds overhead */
+        $rootScope.searchRating = 0;
+
+        $rootScope.performTagSearch = function() {
+            $location.path('/search').search('tags', $rootScope.searchInput);
+        };
+        $rootScope.performRatingSearch = function(rating) {
+            $location.path('/search').search('rating', rating);
+        };
+});
+
+
+pyfotoApp.controller('searchController', ['$scope', '$http', '$routeParams',  function($scope, $http, $routeParams) {
+    $scope.search_tags = $routeParams.tags;
+    $scope.search_rating = $routeParams.ratings;
+
+    console.log($scope.search_tags);
+    console.log($scope.search_rating);
+
+}]);
 
 
 pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  function($scope, $http, $interval) {
@@ -392,4 +413,20 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  functi
     $scope.starts();
     $scope.allTags();
 
+}]);
+
+
+pyfotoApp.config(['$routeProvider', function ($routeProvider) {
+    $routeProvider
+        .when('/', {
+            redirectTo: '/search'
+        })
+        .when('/search', {
+            templateUrl: '/template/search.html',
+            controller: 'searchController'
+        })
+        .when('/image/:imageId', {
+            templateUrl: '/template/image.html',
+            controller: 'indexController'
+        })
 }]);
