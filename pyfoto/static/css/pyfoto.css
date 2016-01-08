@@ -40,13 +40,18 @@ body {
     margin: 3px;
     display:inline-block;
     cursor: pointer;
+    text-decoration: none;
+    color: #000;
+}
+
+.highlight {
+    background: #fff;
 }
 
 .add-tag {
     position: absolute;
     bottom: 0;
     width: 100%;
-    
 }
 
 .right-side {

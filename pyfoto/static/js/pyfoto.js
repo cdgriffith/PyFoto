@@ -69,6 +69,9 @@ pyfotoApp.run(function($rootScope, $location, $http) {
             my_array = $rootScope.globals.tags;
         }
         if (objIndexOf(my_array, "tag", tag.tag) == -1) {
+            if (! "highlight" in tag){
+                tag.highlight = false;
+            }
             my_array.push(tag);
         }
     };
@@ -80,6 +83,7 @@ pyfotoApp.run(function($rootScope, $location, $http) {
                 $rootScope.pushUniqueTag(value);
             });
         });
+
     $rootScope.pushUniqueTag({tag: "untagged", private: 0});
 
 });
@@ -123,35 +127,30 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                 $scope.galleryImages = response.data;
                 $scope.currentFilters = {rating: $scope.search_rating};
             });
-    } else {
+    } else if ($scope.search_tags != undefined) {
         $http.get("/search?search=" + $scope.search_tags)
             .success(function (response) {
                 $scope.galleryImages = response.data;
                 $scope.currentFilters = {tags: $scope.search_tags};
             });
+    } else {
+        alert("Should not be here, how'd you do that?");
     }
 
     $scope.performRatingSearch = function(rating) {
         $location.url('/search').search('rating', rating);
     };
 
-
-    $scope.searchRate = function(rating) {
-
-
-
-    };
-
-
 }]);
 
 
-pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  function($scope, $http, $interval) {
-    $scope.availTags = [];
-    $scope.untagged = {tag: "untagged", private: 0};
+pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
+    $scope.image_id = $routeParams.imageId;
 
     $scope.globals = $rootScope.globals;
 
+    /*$scope.availTags = [];
+    $scope.untagged = {tag: "untagged", private: 0};
     $scope.currentImage = "";
     $scope.currentID = 1;
     $scope.currentName = "";
@@ -160,20 +159,44 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$interval',  functi
     $scope.privateTags = [];
     $scope.currentFilters = "";
     $scope.currentRating = 0;
-    $scope.searchRating = 0;
+    $scope.searchRating = 0;*/
 
     $scope.showFilename = true;
     $scope.scroller = null;
     $scope.scrolling = false;
 
+    $scope.highlightTag = function(tag){
+        //var item = $.grep($scope.globals.tags, function(e){ return e.tag === tag});
+        angular.forEach($scope.globals.tags, function(item) {
+            if (item.tag == tag) {
+                item.highlight = true;
+            }
+        });
+    };
+
+    $scope.unhighlightTag = function(tag){
+        angular.forEach($scope.globals.tags, function(item) {
+            if (item.tag == tag) {
+                item.highlight = false;
+            }
+        });
+    };
+
+    $scope.unhighlightAll = function(){
+        angular.forEach($scope.globals.tags, function(item) {
+            item.highlight = false;
+        });
+    };
+
     $scope.update = function(response){
-        $scope.currentID = response.data[0].id;
-        $scope.currentImage = response.data[0].path;
-        $scope.currentName = response.data[0].name;
-        $scope.currentFilename = response.data[0].filename;
-        $scope.currentRating = response.data[0].rating;
-        $scope.availTags.length = 0;
-        $scope.currentTags.length = 0;
+        $scope.image_info = response.data[0];
+        //$scope.currentID = response.data[0].id;
+        //$scope.currentImage = response.data[0].path;
+        //$scope.currentName = response.data[0].name;
+        //$scope.currentFilename = response.data[0].filename;
+        //$scope.currentRating = response.data[0].rating;
+        //$scope.availTags.length = 0;
+        //$scope.currentTags.length = 0;
         $scope.privateTags.length = 0;
 
         angular.forEach(response.data[0].tags, function(item){

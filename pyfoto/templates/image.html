@@ -50,13 +50,8 @@
 
                 <div class="tag-cloud">
                     <h4 class="header">Tags</h4>
-                    <span ng-repeat="tag in currentTags" class="tag" ng-bind="tag.tag"
-                          ng-click="modifyTag(tag, 'remove')"></span>
-                </div>
-                <div class="tag-cloud">
-                    <h5 class="header">Available</h5>
-                    <span ng-repeat="tag in availTags" class="tag" ng-bind="tag.tag"
-                          ng-click="modifyTag(tag, 'add')"></span>
+                    <span ng-repeat="tag in $scope.globals.tags" class="tag" ng-bind="tag.tag"
+                          ng-click="modifyTag(tag, 'remove')" ng-class="{highlight: tag.highlight==true}"></span>
                 </div>
 
                 <div class="add-tag">
