@@ -141,6 +141,29 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         $location.url('/search').search('rating', rating);
     };
 
+    $scope.nextPage = function(){
+        var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
+        var url = "/next/" + highest + "?count=100";
+        if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
+            url += "&search="+$scope.currentFilters;
+        }
+        $http.get(url)
+            .success(function (response) {
+                if (response.data.length == 0){
+                    return false;
+                }
+                else {
+                    angular.forEach(response.data, function(value){
+                        $scope.galleryImages.push(value);
+                        if ($scope.galleryImages.length >= 1000){
+                            $scope.galleryImages.splice(0,1);
+                        }
+                    });
+                }
+            })
+    };
+
+
 }]);
 
 
@@ -190,6 +213,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     $scope.update = function(response){
         $scope.image_info = response.data[0];
+
         //$scope.currentID = response.data[0].id;
         //$scope.currentImage = response.data[0].path;
         //$scope.currentName = response.data[0].name;
@@ -197,49 +221,19 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         //$scope.currentRating = response.data[0].rating;
         //$scope.availTags.length = 0;
         //$scope.currentTags.length = 0;
-        $scope.privateTags.length = 0;
+
+        console.log($scope.image_info);
 
         angular.forEach(response.data[0].tags, function(item){
            if(item.private == false){
-               $scope.currentTags.push(item);
-           } else {
-               $scope.privateTags.push(item);
+               $scope.highlightTag(item.tag);
            }
         });
 
-        angular.forEach($scope.tags, function(item){
-            if(objIndexOf($scope.currentTags, item.tag, "tag") == -1 &&
-                objIndexOf($scope.privateTags, item.tag, "tag") == -1 &&
-                item.tag != "untagged"){
-                $scope.availTags.push(item);
-            }
-        });
+        $(".main-image").css('background-image', 'url(/item/' + $scope.image_info.path + ')');
 
         $scope.showFilename = true;
 
-    };
-
-    $scope.removeCurrentTag = function(tag) {
-        var index = $scope.currentTags.indexOf(tag);
-        $scope.currentTags.splice(index, 1);
-    };
-
-    $scope.updateAvailTags = function(){
-        //Makes sure 'untagged' is applied properly.
-
-        $scope.availTags = [];
-        angular.forEach($scope.tags, function(value){
-            if($scope.currentTags.indexOf(value) == -1 && value.tag != "untagged"){
-                $scope.availTags.push(value);
-            }
-        });
-        /*if ($scope.currentTags.length == 0) {
-            $scope.currentTags.push($scope.untagged);
-        } else if ($scope.currentTags.indexOf($scope.untagged) > -1) {
-            $scope.removeCurrentTag($scope.untagged);
-        }*/
-
-        $scope.availTags.sort();
     };
 
     $scope.deleteImage = function(){
@@ -248,16 +242,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
                     $scope.nextItem();
                 });
 
-    };
-
-    $scope.starts = function(){
-            $http.get("/file?count=100")
-              .success(function (response) {
-                    $scope.toggleImage("off");
-                   $scope.galleryImages = response.data;
-                    $scope.currentFilters = $scope.searchInput;
-                    $scope.searchInput = "";
-                });
     };
 
     $scope.nextItem = function(){
@@ -305,11 +289,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
         $http.post("/file/" + $scope.currentID + "/tag/" + $scope.tagInput, {})
         .success(function (response) {
-                var newtag = {tag: $scope.tagInput, private: 0};
-                $scope.tags.push(newtag);
-                $scope.currentTags.push(newtag);
+                var newtag = {tag: $scope.tagInput, private: 0, highlight: true};
+                $scope.global.tags.push(newtag);
                 $scope.tagInput = "";
-                $scope.updateAvailTags();
             });
     };
 
@@ -321,28 +303,15 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         if(action=='add'){
             $http.post("/file/" + $scope.currentID + "/tag/" + tag.tag, {})
             .success(function (response) {
-                   $scope.currentTags.push(tag);
-                    $scope.updateAvailTags();
+                   $scope.highlightTag(tag.tag);
                 });
         } else if (action == 'remove') {
             $http.delete("/file/" + $scope.currentID + "/tag/" + tag.tag)
             .success(function (response) {
-                   $scope.removeCurrentTag(tag);
-                    $scope.updateAvailTags();
+                   $scope.unhighlightTag(tag.tag);
                 });
         }
 
-    };
-
-
-    $scope.allTags = function(){
-        $http.get("/tag")
-            .success(function (response) {
-                angular.forEach(response.data, function(value){
-                   $scope.tags.push(value);
-                });
-            });
-        $scope.tags.push($scope.untagged);
     };
 
 
@@ -356,8 +325,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         }
     };
 
-
-
     $scope.openImage = function(file_id){
         $http.get("/file/" + file_id)
             .success(function (response) {
@@ -370,27 +337,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
             })
     };
 
-    $scope.nextPage = function(){
-        var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
-        var url = "/next/" + highest + "?count=100";
-        if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
-            url += "&search="+$scope.currentFilters;
-        }
-        $http.get(url)
-            .success(function (response) {
-                if (response.data.length == 0){
-                    return false;
-                }
-                else {
-                    angular.forEach(response.data, function(value){
-                        $scope.galleryImages.push(value);
-                        if ($scope.galleryImages.length >= 1000){
-                            $scope.galleryImages.splice(0,1);
-                        }
-                    });
-                }
-            })
-    };
+
 
     $scope.rateFunction = function(rating) {
 
@@ -419,14 +366,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     };
 
-
-    $scope.searchTag = function(tag){
-        $scope.searchInput = tag.tag;
-        $scope.searchImages();
-    };
-
-
-
     $scope.scrollOn = function(){
         $scope.scroller = $interval(function(){
             $scope.nextItem();
@@ -445,9 +384,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         $doc.off('keydown', $scope.keyHandler);
     });
 
-    $scope.toggleImage("off");
-    $scope.starts();
-    $scope.allTags();
+    $scope.openImage($scope.image_id);
 
 }]);
 
