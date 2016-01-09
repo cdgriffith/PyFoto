@@ -10,6 +10,7 @@
             <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
         </div>
     </div>
+
 </div>
 
 <div class="col-lg-2 col-sm-2 col-md-2 right-side" >
@@ -26,7 +27,7 @@
                     <span title="Stop" ng-click="scrollOff(); scrolling=false" ng-hide="scrolling==false"
                           class="glyphicon glyphicon-stop point" ></span>
                 </div>
-                    <div class="star-rating" star-rating rating-value="currentRating"
+                    <div class="star-rating" star-rating rating-value="rating"
                      data-max="5"on-rating-selected="rateFunction(rating)"></div>
 
                     <div class="filename">
@@ -50,8 +51,8 @@
 
                 <div class="tag-cloud">
                     <h4 class="header">Tags</h4>
-                    <span ng-repeat="tag in $scope.globals.tags" class="tag" ng-bind="tag.tag"
-                          ng-click="modifyTag(tag, 'remove')" ng-class="{highlight: tag.highlight==true}"></span>
+                    <span ng-repeat="tag in globals.tags" class="tag" ng-bind="tag.tag"
+                          ng-click="modifyTag(tag)" ng-class="{highlight: tag.highlight==true}"></span>
                 </div>
 
                 <div class="add-tag">

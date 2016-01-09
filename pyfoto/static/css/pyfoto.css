@@ -172,10 +172,12 @@ body {
 
 .left-side {
     padding: 0 1px;
+    height: 100%;
 }
 
 .right-side{
     padding: 0 1px;
+    height: 100%;
 }
 
 .rating{
@@ -214,4 +216,16 @@ ul.rating {
 
 .point {
     cursor: pointer;
+}
+
+.hidden-submit {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+}
+
+.full-scale {
+    width: 100%;
+    height: 100%;
 }

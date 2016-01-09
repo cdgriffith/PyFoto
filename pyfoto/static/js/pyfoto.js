@@ -76,6 +76,22 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         }
     };
 
+    $rootScope.highlightTag = function(tag, remove){
+        //var item = $.grep($scope.globals.tags, function(e){ return e.tag === tag});
+        var remove_tag = remove || false;
+        angular.forEach($rootScope.globals.tags, function(item) {
+            if (item.tag == tag) {
+                item.highlight = !remove_tag;
+            }
+        });
+    };
+
+    $rootScope.unhighlightAll = function(){
+        angular.forEach($rootScope.globals.tags, function(item) {
+            item.highlight = false;
+        });
+    };
+
     // This is here because we should only have to get all tags once, hopefully, kinda
     $http.get("/tag")
         .success(function (response) {
@@ -85,6 +101,34 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         });
 
     $rootScope.pushUniqueTag({tag: "untagged", private: 0});
+
+    $rootScope.getFilters = function(){
+       var url = "&";
+        if ($rootScope.globals.currentFilters == null){
+            return url;
+        } else if ("tag" in $rootScope.globals.currentFilters){
+            url += "search="+ $rootScope.globals.currentFilters["tag"];
+        } else if ("string" in $rootScope.globals.currentFilters){
+            url += "search="+ $rootScope.globals.currentFilters["string"];
+        } else if ("rating" in $rootScope.globals.currentFilters){
+            url += "search="+ $rootScope.globals.currentFilters["rating"] + "&searchType=rating";
+        }
+        return url;
+    };
+
+    $rootScope.paramFilters = function(){
+        if ($rootScope.globals.currentFilters == null){
+            return {};
+        } else if ("tag" in $rootScope.globals.currentFilters){
+            return {search: $rootScope.globals.currentFilters["tag"]};
+        } else if ("string" in $rootScope.globals.currentFilters){
+            return {search: $rootScope.globals.currentFilters["string"]};
+        } else if ("rating" in $rootScope.globals.currentFilters){
+            return {search: $rootScope.globals.currentFilters["rating"], searchType: "rating" };
+        }
+        return {};
+    }
+
 
 });
 
@@ -106,6 +150,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.searchRating = $scope.search_rating || 0;
     $scope.galleryImages = [];
 
+    $rootScope.unhighlightAll();
 
     if($scope.search_tags == undefined && $scope.search_rating == undefined && $scope.search_string == undefined){
             $http.get("/file")
@@ -132,6 +177,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
             .success(function (response) {
                 $scope.galleryImages = response.data;
                 $scope.currentFilters = {tags: $scope.search_tags};
+                // TODO add code to highlight tags
             });
     } else {
         alert("Should not be here, how'd you do that?");
@@ -144,9 +190,8 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.nextPage = function(){
         var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
         var url = "/next/" + highest + "?count=100";
-        if ($scope.currentFilters != "" && $scope.currentFilters != undefined){
-            url += "&search="+$scope.currentFilters;
-        }
+        url += $rootScope.getFilters();
+
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
@@ -164,6 +209,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     };
 
 
+
 }]);
 
 
@@ -172,60 +218,21 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     $scope.globals = $rootScope.globals;
 
-    /*$scope.availTags = [];
-    $scope.untagged = {tag: "untagged", private: 0};
-    $scope.currentImage = "";
-    $scope.currentID = 1;
-    $scope.currentName = "";
-    $scope.currentFilename = "";
-    $scope.currentTags = [];
-    $scope.privateTags = [];
-    $scope.currentFilters = "";
-    $scope.currentRating = 0;
-    $scope.searchRating = 0;*/
-
+    $scope.my_tags = [];
     $scope.showFilename = true;
     $scope.scroller = null;
     $scope.scrolling = false;
+    $scope.rating = 0;
 
-    $scope.highlightTag = function(tag){
-        //var item = $.grep($scope.globals.tags, function(e){ return e.tag === tag});
-        angular.forEach($scope.globals.tags, function(item) {
-            if (item.tag == tag) {
-                item.highlight = true;
-            }
-        });
-    };
-
-    $scope.unhighlightTag = function(tag){
-        angular.forEach($scope.globals.tags, function(item) {
-            if (item.tag == tag) {
-                item.highlight = false;
-            }
-        });
-    };
-
-    $scope.unhighlightAll = function(){
-        angular.forEach($scope.globals.tags, function(item) {
-            item.highlight = false;
-        });
-    };
+    console.log($scope.globals.currentFilters);
 
     $scope.update = function(response){
         $scope.image_info = response.data[0];
-
-        //$scope.currentID = response.data[0].id;
-        //$scope.currentImage = response.data[0].path;
-        //$scope.currentName = response.data[0].name;
-        //$scope.currentFilename = response.data[0].filename;
-        //$scope.currentRating = response.data[0].rating;
-        //$scope.availTags.length = 0;
-        //$scope.currentTags.length = 0;
-
-        console.log($scope.image_info);
+        $scope.rating = $scope.image_info.rating;
 
         angular.forEach(response.data[0].tags, function(item){
-           if(item.private == false){
+           $scope.my_tags.push(item.tag);
+            if(item.private == false){
                $scope.highlightTag(item.tag);
            }
         });
@@ -233,50 +240,43 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         $(".main-image").css('background-image', 'url(/item/' + $scope.image_info.path + ')');
 
         $scope.showFilename = true;
-
     };
 
     $scope.deleteImage = function(){
-          $http.delete("/file/" + $scope.currentID)
+          $http.delete("/file/" + $scope.image_id)
               .success(function (response) {
+                    //TODO if there is no next item, go to previous.
                     $scope.nextItem();
                 });
 
     };
 
     $scope.nextItem = function(){
-        var url = "/next/" + $scope.currentID + "?count=1";
-        if ($scope.currentFilters != "" && $scope.currentFilters != undefined && $scope.currentFilters != "star rating"){
-            url += "&search=" + $scope.currentFilters;
-        } else if ($scope.currentFilters == "star rating"){
-            url += "&searchType=rating" + "&search=" +$scope.searchRating;
-        }
+        var url = "/next/" + $scope.image_id + "?count=1";
+        url += $rootScope.getFilters();
+        console.log(url);
+
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
                     $scope.scrollOff();
                 }
                 else {
-                    $scope.update(response);
+                    $location.url("/image/"+ response.data[0].id).search($rootScope.paramFilters());
                 }
             })
     };
 
     $scope.prevItem = function(){
-        var url = "/prev/" + $scope.currentID + "?count=1";
-            if ($scope.currentFilters != ""  && $scope.currentFilters != undefined && $scope.currentFilters != "star rating"){
-                url += "&search="+$scope.currentFilters;
-        } else if ($scope.currentFilters == "star rating"){
-            url += "&searchType=rating" + "&search=" +$scope.searchRating;
-        }
+        var url = "/prev/" + $scope.image_id + "?count=1";
+        url += $rootScope.getFilters();
 
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
-                    return false;
+                    $scope.scrollOff();
                 } else {
-                    $scope.update(response);
-                    return true;
+                    $location.url("/image/"+ response.data[0].id).search($rootScope.paramFilters());
                 }
             })
     };
@@ -287,7 +287,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
             return false;
         }
 
-        $http.post("/file/" + $scope.currentID + "/tag/" + $scope.tagInput, {})
+        $http.post("/file/" + $scope.image_id + "/tag/" + $scope.tagInput, {})
         .success(function (response) {
                 var newtag = {tag: $scope.tagInput, private: 0, highlight: true};
                 $scope.global.tags.push(newtag);
@@ -300,15 +300,20 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
             console.log("Someone tried to modify 'untagged', hehe");
             return false;
         }
-        if(action=='add'){
-            $http.post("/file/" + $scope.currentID + "/tag/" + tag.tag, {})
-            .success(function (response) {
-                   $scope.highlightTag(tag.tag);
+
+        if($scope.my_tags.indexOf(tag.tag) >= 0){
+            console.log("removing");
+            $http.delete("/file/" + $scope.image_id + "/tag/" + tag.tag)
+                .success(function (response) {
+                   $rootScope.highlightTag(tag.tag, true);
+                   $scope.my_tags.splice($scope.my_tags.indexOf(tag.tag),1);
                 });
-        } else if (action == 'remove') {
-            $http.delete("/file/" + $scope.currentID + "/tag/" + tag.tag)
-            .success(function (response) {
-                   $scope.unhighlightTag(tag.tag);
+        } else {
+            console.log("adding");
+            $http.post("/file/" + $scope.image_id + "/tag/" + tag.tag, {})
+                .success(function (response) {
+                    $rootScope.highlightTag(tag.tag);
+                    $scope.my_tags.push(tag.tag);
                 });
         }
 
@@ -341,7 +346,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     $scope.rateFunction = function(rating) {
 
-        $http.put("/file/" + $scope.currentID, {rating: rating})
+        $http.put("/file/" + $scope.image_id, {rating: rating})
             .error(function(data){
            alert("Not able to update file rating");
         });
@@ -355,9 +360,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
           return false;
       }
 
-        $http.put("/file/" + $scope.currentID, {name: $scope.newName})
+        $http.put("/file/" + $scope.image_id, {name: $scope.newName})
             .success(function(data){
-                $scope.currentName = $scope.newName;
+                $scope.image_info.name = $scope.newName;
                 $scope.showFilename = true;
             })
             .error(function(data){
@@ -384,6 +389,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         $doc.off('keydown', $scope.keyHandler);
     });
 
+    $rootScope.unhighlightAll();
     $scope.openImage($scope.image_id);
 
 }]);
