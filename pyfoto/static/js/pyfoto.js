@@ -213,7 +213,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 }]);
 
 
-pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
+pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  '$interval', function($scope, $http, $routeParams, $rootScope, $location, $interval) {
     $scope.image_id = $routeParams.imageId;
 
     $scope.globals = $rootScope.globals;
@@ -221,7 +221,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $scope.my_tags = [];
     $scope.showFilename = true;
     $scope.scroller = null;
-    $scope.scrolling = false;
+    $scope.scrolling = $routeParams.scrolling || false;
     $scope.rating = 0;
 
     console.log($scope.globals.currentFilters);
@@ -240,6 +240,14 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         $(".main-image").css('background-image', 'url(/item/' + $scope.image_info.path + ')');
 
         $scope.showFilename = true;
+
+        if ($scope.scrolling){
+        $scope.scroller = $interval(function(){
+            $scope.nextItem();
+        }, 2500, 1);
+
+        }
+
     };
 
     $scope.deleteImage = function(){
@@ -262,7 +270,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
                     $scope.scrollOff();
                 }
                 else {
-                    $location.url("/image/"+ response.data[0].id).search($rootScope.paramFilters());
+                    $location.url("/image/"+ response.data[0].id).search($rootScope.paramFilters()).search({"scrolling": $scope.scrolling});
                 }
             })
     };
@@ -372,9 +380,10 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     };
 
     $scope.scrollOn = function(){
+        $scope.scrolling = true;
         $scope.scroller = $interval(function(){
             $scope.nextItem();
-        }, 1500);
+        }, 2500, 1);
 
     };
 
