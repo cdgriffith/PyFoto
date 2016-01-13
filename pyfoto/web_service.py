@@ -278,9 +278,8 @@ def search_request(db):
 
 
 @app.route("/", method="GET")
-@bottle.view("index", template_settings=dict(syntax="<% %> % [[ ]]"))
 def index():
-    return {}
+    return bottle.redirect("/template/index.html", 302)
 
 
 @app.hook('after_request')
