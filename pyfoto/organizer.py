@@ -86,7 +86,7 @@ class Organize:
             return True
         return False
 
-    def tag_strings_to_tags(self, tags: tuple) -> list:
+    def _tag_strings_to_tags(self, tags: tuple) -> list:
         """
         Take a list of strings that represent tags
         and return SQLAlchemy objects.
@@ -110,7 +110,7 @@ class Organize:
 
         return add_tags
 
-    def ingest(self, file: str, ingest_path: str, sha256: str,
+    def _ingest(self, file: str, ingest_path: str, sha256: str,
                 tags: tuple=()) -> None:
         """
         Copy a file to the new location and verify it was
@@ -154,7 +154,7 @@ class Organize:
         new_file = File(path=ingest_path, sha256=sha256, extension=ext,
                         size=size, filename=os.path.basename(file),
                         thumbnail=thumb_path, width=width, height=height,
-                        tags=self.tag_strings_to_tags(tags))
+                        tags=self._tag_strings_to_tags(tags))
 
         self.session.add(new_file)
         if self.config.remove_source:
@@ -169,10 +169,11 @@ class Organize:
 
         save_config(self.config.to_dict())
 
-    def add_images(self, directory: str, tags: tuple=()):
+    def add_images_generator(self, directory: str, tags: tuple=()):
         """
         Go through a directory for all image files and ingest them.
 
+        :param breaker:
         :param directory:
         :param tags:
         :return:
@@ -183,8 +184,8 @@ class Organize:
         for file in reusables.find_all_files_generator(
                 directory, ext=reusables.exts.pictures):
             total += 1
-            if total % 5.0 == 0.0:
-                yield total
+            if total % 20 == 0.0:
+                logger.info("Ingested {0} images so far.".format(total))
 
             sha256, ext, size = self.file_info(file)
             if (not self.config.ignore_duplicates and
@@ -210,7 +211,7 @@ class Organize:
                                            size=size))
 
             try:
-                self.ingest(file, ingest_path, sha256, tags=tags)
+                self._ingest(file, ingest_path, sha256, tags=tags)
             except Exception as err:
                 self.save_config()
                 self.session.commit()
@@ -218,7 +219,7 @@ class Organize:
 
         self.session.commit()
         self.save_config()
-        yield total
+        return total
 
     def create_thumbnail(self, file: str, out_path: str,
                          width: int=250, height: int=250) -> tuple:
@@ -244,7 +245,6 @@ class Organize:
         return org_width, org_height
 
     def pull_deleted(self, move_dir=None):
-        import shutil
         if not move_dir:
             move_dir = os.path.join(self.config.storage_directory, os.path.pardir, "pyfoto_deleted")
         self.ensure_exists(move_dir)
@@ -258,7 +258,6 @@ class Organize:
         self.session.commit()
 
     def pull_edit(self, move_dir=None, delete=True):
-        import shutil
         if not move_dir:
             move_dir = os.path.join(self.config.storage_directory, os.path.pardir, "pyfoto_edit")
         self.ensure_exists(move_dir)

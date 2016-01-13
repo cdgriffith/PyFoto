@@ -1,0 +1,69 @@
+<div class="col-lg-10 col-sm-10 col-md-10 left-side">
+    <!--- ng-style="{'background-image': 'url(/item/' + image_info.path + ')'}"--->
+    <div class="main-image">
+
+        <div class="col-md-1 left-image" ng-click="prevItem()">
+            <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span>
+        </div>
+
+        <div class="col-md-1 pull-right right-image" ng-click="nextItem()">
+            <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
+        </div>
+    </div>
+
+</div>
+
+<div class="col-lg-2 col-sm-2 col-md-2 right-side" >
+
+    <div class="search-area" ng-controller="searchController" ng-include="'search.html'">
+    </div>
+    <div class="image-data" >
+
+
+                <div class="image-details">
+                <div class="image-controls">
+                    <span title="Play" ng-click="scrollOn(); scrolling=true;" ng-hide="scrolling==true"
+                          class="glyphicon glyphicon-play point" ></span>
+                    <span title="Stop" ng-click="scrollOff(); scrolling=false" ng-hide="scrolling==false"
+                          class="glyphicon glyphicon-stop point" ></span>
+                </div>
+                    <div class="star-rating" star-rating rating-value="rating"
+                     data-max="5"on-rating-selected="rateFunction(rating)"></div>
+
+                    <div class="filename">
+                        <div class="show-filename" ng-click="showFilename = ! showFilename"
+                               ng-show="showFilename" >{{image_info.name}}</div>
+                        <form style="color:black;" ng-show="! showFilename"
+                              class="form-inline">
+                            <div class="form-group">
+                                <label class="sr-only" for="changeFilename">Filename</label>
+                                <input   id="changeFilename" type="text" ng-model="newName" name="filename" placeholder="{{image_info.name}}"  />
+                            </div>
+                            <button ng-click="updateFilename()" class="btn btn-primary">Save</button>
+                            <button ng-click="showFilename = ! showFilename" class="btn btn-danger">Cancel</button>
+                        </form>
+                    </div>
+
+
+                    <a href="/item/{{image_info.path}}" download="{{image_info.name}}" >Download</a> |
+                    <a href="#" style="color: red;" ng-click="deleteImage()">Delete</a>&nbsp;&nbsp;&nbsp;
+                </div>
+
+                <div class="tag-cloud">
+                    <h4 class="header">Tags</h4>
+                    <span ng-repeat="tag in globals.tags" class="tag" ng-bind="tag.tag"
+                          ng-click="modifyTag(tag)" ng-class="{highlight: tag.highlight==true}"></span>
+                </div>
+
+                <div class="add-tag">
+                    <form ng-submit="addTagToFile()" class="form-inline">
+                         <div class="form-group">
+                            <label class="sr-only" for="tagInput">Name</label>
+                            <input id="tagInput" ng-model="tagInput" type="text" placeholder="New Tag" />
+                         </div>
+                        <input type="submit" style="position: absolute; left: -9999px; width: 1px; height: 1px;"/>
+                    </form>
+                </div>
+            </div>
+
+</div>

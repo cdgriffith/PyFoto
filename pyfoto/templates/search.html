@@ -1,0 +1,19 @@
+<a class="back-to-search" href="#/search">
+    <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
+</a>
+
+<form ng-submit="performSearch(searchInput)" class="form-inline">
+     <div class="form-group">
+        <label class="sr-only" for="searchInput">search</label>
+        <input id="searchInput" ng-model="searchInput" type="text"
+               placeholder="Search" />
+     </div>
+    <input class="hidden-submit" type="submit" />
+</form>
+
+<div class="current-search" ng-hide="globals.currentFilters == null">
+    <a href="#/search">
+        <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"></span>
+        Current Search: {{globals.currentFilters}}
+    </a>
+</div>

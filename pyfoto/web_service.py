@@ -33,9 +33,15 @@ def static_file(filename, db):
                               root=os.path.join(root, "static"))
 
 
+@app.route("/template/<template>")
+def static_template(template, db):
+    return bottle.static_file(filename=template,
+                              root=os.path.join(root, "templates"))
+
+
 # noinspection PyUnresolvedReferences
 @app.route("/item/<filename:path>")
-def static_file(filename, db):
+def static_image(filename, db):
     if filename.startswith(app.settings.storage_directory):
         filename = filename[len(app.settings.storage_directory) + 1:]
     return bottle.static_file(filename,
@@ -132,7 +138,10 @@ def remove_tag_from_file(file_id, tag, db):
     except NoResultFound:
         return {"error": True}
 
-    file_item.tags.remove(tag_item)
+    try:
+        file_item.tags.remove(tag_item)
+    except ValueError:
+        return {"error": True, "message": "That tag isn't associated with anything yet"}
 
     db.commit()
     return {"error": False}
@@ -269,9 +278,8 @@ def search_request(db):
 
 
 @app.route("/", method="GET")
-@bottle.view("index", template_settings=dict(syntax="<% %> % [[ ]]"))
 def index():
-    return {}
+    return bottle.redirect("/template/index.html", 302)
 
 
 @app.hook('after_request')

@@ -1,0 +1,29 @@
+<div class="col-lg-10 col-sm-10 col-md-10 left-side">
+    <div class="gallery">
+    <a href="#/image/{{image.id}}" ng-repeat="image in galleryImages">
+        <div class="gallery-image"
+             ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
+             ng-click="openImage(image.id)">
+        </div>
+    </a>
+    <div class="more-footer col-md-12" ng-click="nextPage()">Load More</div>
+    </div>
+</div>
+
+<div class="col-lg-2 col-sm-2 col-md-2 right-side" >
+
+    <div class="search-area" ng-controller="searchController" ng-include="'search.html'">
+    </div>
+
+    <div class="star-rating" star-rating rating-value="searchRating"
+         data-max="5"on-rating-selected="performRatingSearch(rating)"></div>
+
+    <div class="tag-cloud">
+        <h4 class="header">Search Tags</h4>
+        <a ng-repeat="tag in globals.tags" href="#/search/?tags={{tag.tag}}" >
+            <span class="tag"  ng-class="{highlight: tag.highlight==true}" >{{tag.tag}}</span>
+        </a>
+    </div>
+
+</div>
+
