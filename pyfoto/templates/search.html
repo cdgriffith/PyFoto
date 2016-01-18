@@ -1,4 +1,4 @@
-<a class="back-to-search" href="#/search">
+<a class="back-to-search" href="#/search?{{get_filters}}">
     <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
 </a>
 
@@ -11,7 +11,7 @@
     <input class="hidden-submit" type="submit" />
 </form>
 
-<div class="current-search" ng-hide="globals.currentFilters == null">
+<div class="current-search" ng-hide="angular.equals({}, globals.currentFilters)">
     <a href="#/search">
         <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"></span>
         Current Search: {{globals.currentFilters}}

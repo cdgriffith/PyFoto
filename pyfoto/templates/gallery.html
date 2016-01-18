@@ -1,6 +1,6 @@
 <div class="col-lg-10 col-sm-10 col-md-10 left-side">
     <div class="gallery">
-    <a href="#/image/{{image.id}}" ng-repeat="image in galleryImages">
+    <a href="#/image/{{image.id}}?{{get_filters}}" ng-repeat="image in galleryImages">
         <div class="gallery-image"
              ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
              ng-click="openImage(image.id)">
@@ -20,7 +20,7 @@
 
     <div class="tag-cloud">
         <h4 class="header">Search Tags</h4>
-        <a ng-repeat="tag in globals.tags" href="#/search/?tags={{tag.tag}}" >
+        <a ng-repeat="tag in globals.tags" href="#/search/?search={{tag.tag}}&search_type=tags" >
             <span class="tag"  ng-class="{highlight: tag.highlight==true}" >{{tag.tag}}</span>
         </a>
     </div>

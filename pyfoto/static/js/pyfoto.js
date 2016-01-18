@@ -60,7 +60,7 @@ pyfotoApp.run(function($rootScope, $location, $http) {
     /* polluting the root scope to a minimum. */
     $rootScope.globals = {
         tags: [],
-        currentFilters: null,
+        currentFilters: {},
         searchRating: 0
         };
 
@@ -102,14 +102,16 @@ pyfotoApp.run(function($rootScope, $location, $http) {
 
     $rootScope.pushUniqueTag({tag: "untagged", private: 0});
 
+    // Ok, so, this is all kinda silly right now, but this is so it can be exampled for advnced searches later
+
     $rootScope.getFilters = function(){
        var url = "&";
-        if ($rootScope.globals.currentFilters == null){
+        if (angular.equals({}, $rootScope.globals.currentFilters)){
             return url;
-        } else if ("tag" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters["tag"];
+        } else if ("tags" in $rootScope.globals.currentFilters){
+            url += "search="+ $rootScope.globals.currentFilters["tags"] + "&searchType=tag";
         } else if ("string" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters["string"];
+            url += "search="+ $rootScope.globals.currentFilters["string"]  + "&searchType=string";
         } else if ("rating" in $rootScope.globals.currentFilters){
             url += "search="+ $rootScope.globals.currentFilters["rating"] + "&searchType=rating";
         }
@@ -117,17 +119,28 @@ pyfotoApp.run(function($rootScope, $location, $http) {
     };
 
     $rootScope.paramFilters = function(){
-        if ($rootScope.globals.currentFilters == null){
+        if (angular.equals({}, $rootScope.globals.currentFilters)){
             return {};
-        } else if ("tag" in $rootScope.globals.currentFilters){
-            return {search: $rootScope.globals.currentFilters["tag"]};
+        } else if ("tags" in $rootScope.globals.currentFilters){
+            return {search: $rootScope.globals.currentFilters["tags"], searchType: "tag"};
         } else if ("string" in $rootScope.globals.currentFilters){
-            return {search: $rootScope.globals.currentFilters["string"]};
+            return {search: $rootScope.globals.currentFilters["string"], searchType: "string"};
         } else if ("rating" in $rootScope.globals.currentFilters){
             return {search: $rootScope.globals.currentFilters["rating"], searchType: "rating" };
         }
         return {};
-    }
+    };
+
+    $rootScope.setFilters = function(params){
+        if ("search" in params){
+            if (! ("search_type" in params)){
+                $rootScope.globals.currentFilters["tags"] = params.search;
+            } else {
+                $rootScope.globals.currentFilters[params.search_type] = params.search;
+            }
+        }
+        console.log($rootScope.globals.currentFilters);
+    };
 
 
 });
@@ -142,41 +155,44 @@ pyfotoApp.controller('searchController', ['$scope', '$http', '$routeParams', '$r
 }]);
 
 pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
-    $scope.search_tags = $routeParams.tags;
-    $scope.search_rating = $routeParams.rating;
-    $scope.search_string = $routeParams.search;
+    $rootScope.setFilters($routeParams);
+    $scope.get_filters = $rootScope.getFilters();
     $scope.globals = $rootScope.globals;
 
-    $scope.searchRating = $scope.search_rating || 0;
+    $scope.searchRating = 0;
+
+    if ("rating" in $scope.globals.currentFilters){
+        $scope.searchRating = $scope.globals.currentFilters.rating;
+    }
+
     $scope.galleryImages = [];
 
     $rootScope.unhighlightAll();
 
-    if($scope.search_tags == undefined && $scope.search_rating == undefined && $scope.search_string == undefined){
+    if(! ("string" in $scope.globals.currentFilters) &&
+        ! ("rating" in $scope.globals.currentFilters) &&
+        ! ("tags" in $scope.globals.currentFilters)){
             $http.get("/file")
               .success(function (response) {
                     $scope.galleryImages = response.data;
-                    $scope.globals.currentFilters = null;
+                    $scope.globals.currentFilters = {};
                 });
 
-    } else if ($scope.search_string != undefined) {
+    } else if ("string" in $scope.globals.currentFilters) {
 
-        $http.get("/search?search=" + $scope.search_string)
+        $http.get("/search?search=" + $scope.globals.currentFilters.string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
-                $scope.currentFilters = {string: $scope.search_string};
             });
-    } else if ($scope.search_rating != undefined) {
-        $http.get("/search?search=" + $scope.search_rating + "&search_type=rating")
+    } else if ("rating" in $scope.globals.currentFilters) {
+        $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&search_type=rating")
             .success(function (response) {
                 $scope.galleryImages = response.data;
-                $scope.currentFilters = {rating: $scope.search_rating};
             });
-    } else if ($scope.search_tags != undefined) {
-        $http.get("/search?search=" + $scope.search_tags)
+    } else if ("tags" in $scope.globals.currentFilters) {
+        $http.get("/search?search=" + $scope.globals.currentFilters.tags)
             .success(function (response) {
                 $scope.galleryImages = response.data;
-                $scope.currentFilters = {tags: $scope.search_tags};
                 // TODO add code to highlight tags
             });
     } else {
@@ -184,13 +200,14 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     }
 
     $scope.performRatingSearch = function(rating) {
-        $location.url('/search').search('rating', rating);
+        $rootScope.globals.currentFilters = {};
+        $location.url('/search').search({search: rating, search_type: "rating"});
     };
 
     $scope.nextPage = function(){
         var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
         var url = "/next/" + highest + "?count=100";
-        url += $rootScope.getFilters();
+        url += $rootScope.get_filters;
 
         $http.get(url)
             .success(function (response) {
@@ -208,15 +225,15 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
             })
     };
 
-
-
 }]);
 
 
 pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  '$interval', function($scope, $http, $routeParams, $rootScope, $location, $interval) {
-    $scope.image_id = $routeParams.imageId;
-
+    $rootScope.setFilters($routeParams);
+    $scope.get_filters = $rootScope.getFilters();
     $scope.globals = $rootScope.globals;
+
+    $scope.image_id = $routeParams.imageId;
 
     $scope.my_tags = [];
     $scope.showFilename = true;
@@ -224,7 +241,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $scope.scrolling = $routeParams.scrolling || false;
     $scope.rating = 0;
 
-    console.log($scope.globals.currentFilters);
 
     $scope.update = function(response){
         $scope.image_info = response.data[0];
@@ -361,7 +377,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     };
 
 
-
     $scope.updateFilename = function(){
       if ($scope.newName == undefined || $scope.newName == ""){
           $scope.showFilename = true;
@@ -400,6 +415,10 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     $rootScope.unhighlightAll();
     $scope.openImage($scope.image_id);
+
+    $scope.$on('$destroy', function iVeBeenDismissed() {
+        $scope.scrollOff();
+    })
 
 }]);
 
