@@ -403,6 +403,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     };
 
     $scope.scrollOff = function(){
+        $scope.scrolling = false;
         $interval.cancel($scope.scroller);
     };
 
