@@ -341,17 +341,21 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         }
 
         if($scope.my_tags.indexOf(tag.tag) >= 0){
-            console.log("removing");
             $http.delete("/file/" + $scope.image_id + "/tag/" + tag.tag)
                 .success(function (response) {
                    $rootScope.highlightTag(tag.tag, true);
                    $scope.my_tags.splice($scope.my_tags.indexOf(tag.tag),1);
+                   if ($scope.my_tags.length == 0){
+                       $rootScope.highlightTag("untagged");
+                   }
+
                 });
         } else {
-            console.log("adding");
             $http.post("/file/" + $scope.image_id + "/tag/" + tag.tag, {})
                 .success(function (response) {
                     $rootScope.highlightTag(tag.tag);
+                    $rootScope.highlightTag("untagged", true); // could check to see if it's already unchecked, but
+                    // I'm lazy and this works fine
                     $scope.my_tags.push(tag.tag);
                 });
         }
