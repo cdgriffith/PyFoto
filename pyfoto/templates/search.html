@@ -1,4 +1,4 @@
-<a class="back-to-search" href="#/search?{{get_filters}}">
+<a class="back-to-search" href="#/search?{{get_filters}}" ng-show="current_page != 'search'">
     <span class="glyphicon glyphicon-triangle-left" aria-hidden="true"></span> Back to Search
 </a>
 
@@ -14,6 +14,6 @@
 <div class="current-search" ng-hide="! (param_filters.hasOwnProperty('search'))">
     <a href="#/search">
         <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"></span>
-        {{param_filters.searchType}} : {{param_filters.search}}
+        Clear Filters
     </a>
 </div>

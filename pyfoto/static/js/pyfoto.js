@@ -68,7 +68,7 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         if (my_array == undefined){
             my_array = $rootScope.globals.tags;
         }
-        if (objIndexOf(my_array, "tag", tag.tag) == -1) {
+        if (objIndexOf(my_array, tag.tag, "tag") == -1) {
             if (! "highlight" in tag){
                 tag.highlight = false;
             }
@@ -100,7 +100,7 @@ pyfotoApp.run(function($rootScope, $location, $http) {
             });
         });
 
-    $rootScope.pushUniqueTag({tag: "untagged", private: 0});
+    $rootScope.pushUniqueTag({tag: "untagged", private: 0, highlight: false});
 
     // Ok, so, this is all kinda silly right now, but this is so it can be exampled for advnced searches later
 
@@ -109,7 +109,7 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         if (angular.equals({}, $rootScope.globals.currentFilters)){
             return url;
         } else if ("tags" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters["tags"] + "&searchType=tag";
+            url += "search="+ $rootScope.globals.currentFilters.tags.join() + "&searchType=tag";
         } else if ("string" in $rootScope.globals.currentFilters){
             url += "search="+ $rootScope.globals.currentFilters["string"]  + "&searchType=string";
         } else if ("rating" in $rootScope.globals.currentFilters){
@@ -134,9 +134,13 @@ pyfotoApp.run(function($rootScope, $location, $http) {
     $rootScope.setFilters = function(params){
         if ("search" in params){
             if (! ("search_type" in params)){
-                $rootScope.globals.currentFilters["tags"] = params.search;
+                $rootScope.globals.currentFilters.tags = params.search.split(",");
             } else {
-                $rootScope.globals.currentFilters[params.search_type] = params.search;
+                if (params.search_type == "tags"){
+                    $rootScope.globals.currentFilters.tags = params.search.split(",");
+                } else {
+                    $rootScope.globals.currentFilters[params.search_type] = params.search;
+                }
             }
         } else {
             $rootScope.globals.currentFilters = {};
@@ -160,6 +164,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.get_filters = $rootScope.getFilters();
     $scope.param_filters = $rootScope.paramFilters();
     $scope.globals = $rootScope.globals;
+    $scope.current_page = "search";
 
     $scope.searchRating = 0;
 
@@ -192,10 +197,13 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                 $scope.galleryImages = response.data;
             });
     } else if ("tags" in $scope.globals.currentFilters) {
-        $http.get("/search?search=" + $scope.globals.currentFilters.tags)
+        $http.get("/search?search=" + $scope.globals.currentFilters.tags.join())
             .success(function (response) {
                 $scope.galleryImages = response.data;
-                // TODO add code to highlight tags
+                angular.forEach($scope.globals.currentFilters.tags, function(tag_name){
+                    console.log(tag_name);
+                    $rootScope.highlightTag(tag_name);
+                });
             });
     } else {
         alert("Should not be here, how'd you do that?");
@@ -234,6 +242,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $rootScope.setFilters($routeParams);
     $scope.get_filters = $rootScope.getFilters();
     $scope.globals = $rootScope.globals;
+    $scope.current_page = "image";
 
     $scope.image_id = $routeParams.imageId;
 
@@ -251,9 +260,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
         angular.forEach(response.data[0].tags, function(item){
            $scope.my_tags.push(item.tag);
             if(item.private == false){
-               $scope.highlightTag(item.tag);
+               $rootScope.highlightTag(item.tag);
            }
         });
+        if ($scope.my_tags.length == 0){
+            $rootScope.highlightTag("untagged");
+        }
+
 
         $(".main-image").css('background-image', 'url(/item/' + $scope.image_info.path + ')');
 
@@ -279,7 +292,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     $scope.nextItem = function(){
         var url = "/next/" + $scope.image_id + "?count=1";
-        url += $rootScope.getFilters();
+        url += $scope.get_filters;
         console.log(url);
 
         $http.get(url)
