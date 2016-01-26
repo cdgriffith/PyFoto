@@ -11,9 +11,9 @@
     <input class="hidden-submit" type="submit" />
 </form>
 
-<div class="current-search" ng-hide="angular.equals({}, globals.currentFilters)">
+<div class="current-search" ng-hide="! (param_filters.hasOwnProperty('search'))">
     <a href="#/search">
         <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"></span>
-        Current Search: {{globals.currentFilters}}
+        {{param_filters.searchType}} : {{param_filters.search}}
     </a>
 </div>

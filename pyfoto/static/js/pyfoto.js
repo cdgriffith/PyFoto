@@ -138,8 +138,9 @@ pyfotoApp.run(function($rootScope, $location, $http) {
             } else {
                 $rootScope.globals.currentFilters[params.search_type] = params.search;
             }
+        } else {
+            $rootScope.globals.currentFilters = {};
         }
-        console.log($rootScope.globals.currentFilters);
     };
 
 
@@ -157,6 +158,7 @@ pyfotoApp.controller('searchController', ['$scope', '$http', '$routeParams', '$r
 pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
     $rootScope.setFilters($routeParams);
     $scope.get_filters = $rootScope.getFilters();
+    $scope.param_filters = $rootScope.paramFilters();
     $scope.globals = $rootScope.globals;
 
     $scope.searchRating = 0;
