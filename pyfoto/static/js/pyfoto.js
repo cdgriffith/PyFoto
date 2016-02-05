@@ -131,15 +131,15 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         return {};
     };
 
-    $rootScope.setFilters = function(params){
-        if ("search" in params){
-            if (! ("search_type" in params)){
-                $rootScope.globals.currentFilters.tags = params.search.split(",");
+    $rootScope.setFilters = function(parameters){
+        if ("search" in parameters){
+            if (! ("search_type" in parameters)){
+                $rootScope.globals.currentFilters.tags = parameters.search.split(",");
             } else {
-                if (params.search_type == "tags"){
-                    $rootScope.globals.currentFilters.tags = params.search.split(",");
+                if (parameters.search_type == "tags"){
+                    $rootScope.globals.currentFilters.tags = parameters.search.split(",");
                 } else {
-                    $rootScope.globals.currentFilters[params.search_type] = params.search;
+                    $rootScope.globals.currentFilters[parameters.search_type] = parameters.search;
                 }
             }
         } else {
@@ -241,6 +241,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  '$interval', function($scope, $http, $routeParams, $rootScope, $location, $interval) {
     $rootScope.setFilters($routeParams);
     $scope.get_filters = $rootScope.getFilters();
+    $scope.param_filters = $rootScope.paramFilters();
     $scope.globals = $rootScope.globals;
     $scope.current_page = "image";
 
@@ -301,7 +302,13 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
                     $scope.scrollOff();
                 }
                 else {
-                    $location.url("/image/"+ response.data[0].id).search($rootScope.paramFilters()).search({"scrolling": $scope.scrolling});
+                    var filters = $scope.get_filters;
+                    if ($scope.scrolling){
+                        filters += "&scrolling=true"
+                    } else {
+                        filters += "&scrolling=false"
+                    }
+                    $location.url("/image/"+ response.data[0].id).search(filters);
                 }
             })
     };
@@ -315,7 +322,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
                 if (response.data.length == 0){
                     $scope.scrollOff();
                 } else {
-                    $location.url("/image/"+ response.data[0].id).search($rootScope.paramFilters());
+                    $location.url("/image/"+ response.data[0].id).search($scope.get_filters);
                 }
             })
     };

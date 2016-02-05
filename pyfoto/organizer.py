@@ -254,7 +254,7 @@ class Organize:
             if item.path and os.path.exists(os.path.join(self.config.storage_directory, item.path)):
                 shutil.move(os.path.join(self.config.storage_directory, item.path), os.path.join(move_dir, "{}.{}".format(item.sha256, item.extension)))
                 item.path = None
-                item.tags = None
+                item.tags = []
         self.session.commit()
 
     def pull_edit(self, move_dir=None, delete=True):
@@ -268,6 +268,6 @@ class Organize:
                 shutil.move(os.path.join(self.config.storage_directory, item.path), os.path.join(move_dir, "{}.{}".format(item.sha256, item.extension)))
                 if delete:
                     item.deleted = 1
-                    item.tags = None
+                    item.tags = []
                     item.path = None
         self.session.commit()
