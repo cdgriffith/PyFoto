@@ -250,9 +250,8 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $scope.my_tags = [];
     $scope.showFilename = true;
     $scope.scroller = null;
-    $scope.scrolling = $routeParams.scrolling || false;
+    $scope.scrolling = ($routeParams.scrolling == 'true');
     $scope.rating = 0;
-
 
     $scope.update = function(response){
         $scope.image_info = response.data[0];
@@ -264,26 +263,24 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
                $rootScope.highlightTag(item.tag);
            }
         });
+
         if ($scope.my_tags.length == 0){
             $rootScope.highlightTag("untagged");
         }
-
 
         $(".main-image").css('background-image', 'url(/item/' + $scope.image_info.path + ')');
 
         $scope.showFilename = true;
 
-        if ($scope.scrolling){
-        $scope.scroller = $interval(function(){
-            $scope.nextItem();
-        }, 2500, 1);
-
+        if ($scope.scrolling == true){
+            $scope.scroller = $interval(function(){
+                $scope.nextItem();
+            }, 2500, 1);
         }
-
     };
 
     $scope.deleteImage = function(){
-          $http.delete("/file/" + $scope.image_id)
+        $http.delete("/file/" + $scope.image_id)
               .success(function (response) {
                     //TODO if there is no next item, go to previous.
                     $scope.nextItem();
@@ -304,9 +301,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
                 else {
                     var filters = $scope.get_filters;
                     if ($scope.scrolling){
-                        filters += "&scrolling=true"
+                        filters += "&scrolling=true";
                     } else {
-                        filters += "&scrolling=false"
+                        filters += "&scrolling=false";
                     }
                     $location.url("/image/"+ response.data[0].id).search(filters);
                 }
