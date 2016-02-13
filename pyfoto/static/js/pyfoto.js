@@ -165,6 +165,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.param_filters = $rootScope.paramFilters();
     $scope.globals = $rootScope.globals;
     $scope.current_page = "search";
+    $scope.image_id = 0;
 
     $scope.searchRating = 0;
 
@@ -176,10 +177,17 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     $rootScope.unhighlightAll();
 
+    var start_at = 0;
+    if ($routeParams.start_at >= 0 && $routeParams.start_at != 'undefined'){
+        start_at = $routeParams.start_at;
+    }
+
+    $scope.start_at_string =  "start_at=" + start_at;
+
     if(! ("string" in $scope.globals.currentFilters) &&
         ! ("rating" in $scope.globals.currentFilters) &&
         ! ("tags" in $scope.globals.currentFilters)){
-            $http.get("/file")
+            $http.get("/file?" + $scope.start_at_string)
               .success(function (response) {
                     $scope.galleryImages = response.data;
                     $scope.globals.currentFilters = {};
@@ -187,17 +195,17 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     } else if ("string" in $scope.globals.currentFilters) {
 
-        $http.get("/search?search=" + $scope.globals.currentFilters.string)
+        $http.get("/search?search=" + $scope.globals.currentFilters.string + "&" + $scope.start_at_string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
             });
     } else if ("rating" in $scope.globals.currentFilters) {
-        $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&search_type=rating")
+        $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&" + $scope.start_at_string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
             });
     } else if ("tags" in $scope.globals.currentFilters) {
-        $http.get("/search?search=" + $scope.globals.currentFilters.tags.join())
+        $http.get("/search?search=" + $scope.globals.currentFilters.tags.join() + "&" + $scope.start_at_string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
                 angular.forEach($scope.globals.currentFilters.tags, function(tag_name){
@@ -217,7 +225,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.nextPage = function(){
         var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
         var url = "/next/" + highest + "?count=100";
-        url += $rootScope.get_filters;
+        url += $scope.get_filters;
 
         $http.get(url)
             .success(function (response) {

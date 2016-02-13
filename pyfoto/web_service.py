@@ -53,8 +53,8 @@ def static_image(filename, db):
 def get_items(db):
     options = bottle.request.query.decode()
     try:
-        files = db.query(File).order_by(File.id.asc()).limit(
-            options.get("count", 1000)).all()
+        files = db.query(File).filter(File.id >= int(options.get('start_at', 0))).order_by(File.id.asc()).limit(
+            int(options.get("count", 150))).all()
     except NoResultFound:
         return {"data": []}
     return prepare_file_items(files, app.settings)
@@ -207,20 +207,22 @@ def filter_options(query, options, db):
     return query
 
 
-def tag_search(term, db):
+def tag_search(term, db, start_at=0):
     if term == "untagged":
-        query = db.query(File).filter(File.deleted == 0).filter(File.tags == None).limit(1000).all()
+        query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags == None).limit(
+            150).all()
     else:
-        query = db.query(File).filter(File.deleted == 0).filter(File.tags.any(Tag.tag.in_(term.split(" ")))).limit(1000).all()
+        query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags.any(Tag.tag.in_(
+            term.split(" ")))).limit(150).all()
     return query
 
 
 def rating_search(rating, db, greater=True):
-    return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(1000).all()
+    return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(150).all()
 
 
 def name_search(term, db):
-    return db.query(File).filter(File.deleted == 0).filter(File.name == term).limit(1000).all()
+    return db.query(File).filter(File.deleted == 0).filter(File.name == term).limit(150).all()
 
 
 def directional_item(item_id, db, forward=True, terms=None, rating=0, count=1):
@@ -272,7 +274,7 @@ def search_request(db):
     elif search_type == "name":
         query = None
     else:
-        query = tag_search(options["search"], db)
+        query = tag_search(options["search"], db, options.get('start_at', 0))
 
     return prepare_file_items(query, app.settings)
 
