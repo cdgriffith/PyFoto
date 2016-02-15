@@ -20,9 +20,9 @@
 
     <div class="tag-cloud">
         <h4 class="header">Search Tags</h4>
-        <a ng-repeat="tag in globals.tags" href="#/search/?search={{tag.tag}}&search_type=tags" >
-            <span class="tag"  ng-class="{highlight: tag.highlight==true}" >{{tag.tag}}</span>
-        </a>
+            <span ng-repeat="tag in globals.tags" ng-click="toggleSearchTag(tag)" class="tag"  ng-class="{highlight: tag.highlight==true}" >
+                {{tag.tag}}</span>
+
     </div>
 
 </div>

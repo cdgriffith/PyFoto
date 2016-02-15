@@ -213,7 +213,7 @@ def tag_search(term, db, start_at=0):
             150).all()
     else:
         query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags.any(Tag.tag.in_(
-            term.split(" ")))).limit(150).all()
+            term.split(",")))).limit(150).all()
     return query
 
 
