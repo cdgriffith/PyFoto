@@ -11,6 +11,7 @@ import bottle
 from bottle.ext import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.sql import func, distinct
 
 from pyfoto.organizer import Organize
 from pyfoto.database import File, Tag, Base
@@ -212,8 +213,12 @@ def tag_search(term, db, start_at=0):
         query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags == None).limit(
             150).all()
     else:
-        query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags.any(Tag.tag.in_(
-            term.split(",")))).limit(150).all()
+        search_tags = term.split(",")
+        if not search_tags:
+            return []
+        query = db.query(File).join(File.tags).filter(Tag.tag.in_(search_tags)).group_by(File).having(
+                func.count(distinct(Tag.id)) == len(search_tags)).limit(150).all()
+
     return query
 
 
