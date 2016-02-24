@@ -11,7 +11,7 @@
     <input class="hidden-submit" type="submit" />
 </form>
 
-<div class="current-search" ng-hide="! (param_filters.hasOwnProperty('search'))">
+<div class="current-search" ng-hide="current_page != 'search' || ((! (param_filters.hasOwnProperty('search'))) && start_at == 0)">
     <a href="#/search">
         <span class="glyphicon glyphicon-remove-circle" style="cursor: pointer; color:red"></span>
         Clear Filters

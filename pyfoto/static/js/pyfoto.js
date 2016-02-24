@@ -183,12 +183,12 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     $rootScope.unhighlightAll();
 
-    var start_at = 0;
+    $scope.start_at = 0;
     if ($routeParams.start_at >= 0 && $routeParams.start_at != 'undefined'){
-        start_at = $routeParams.start_at;
+        $scope.start_at = $routeParams.start_at;
     }
 
-    $scope.start_at_string =  "start_at=" + start_at;
+    $scope.start_at_string =  "start_at=" + $scope.start_at;
 
     if(! ("string" in $scope.globals.currentFilters) &&
         ! ("rating" in $scope.globals.currentFilters) &&
