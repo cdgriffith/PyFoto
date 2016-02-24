@@ -238,7 +238,10 @@ def directional_item(item_id, db, forward=True, terms=None, rating=0, count=1):
     if terms and "untagged" in terms:
         query = query.filter(File.tags == None)
     elif terms:
-        query = query.filter(File.tags.any(Tag.tag.in_(terms.split(" "))))
+        search_tags = terms.split(",")
+        # Old Any search query = query.filter(File.tags.any(Tag.tag.in_(terms.split(" "))))
+        query = query.join(File.tags).filter(Tag.tag.in_(search_tags)).group_by(File).having(
+                func.count(distinct(Tag.id)) == len(search_tags))
     elif rating:
         query = query.filter(File.rating == rating)
 
