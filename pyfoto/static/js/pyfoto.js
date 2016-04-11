@@ -173,7 +173,8 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.globals = $rootScope.globals;
     $scope.current_page = "search";
     $scope.image_id = 0;
-    $scope.loadMoreEmpty = false;
+    $scope.loadMoreHidden = false;
+    $scope.loadPrevHidden = true;
 
     $scope.searchRating = 0;
 
@@ -194,9 +195,9 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     $scope.checkLoad = function(response){
         if (! response.expected){
-            $scope.loadMoreEmpty = true;
+            $scope.loadMoreHidden = true;
         } else {
-            $scope.loadMoreEmpty = false;
+            $scope.loadMoreHidden = false;
         }
     }
 
@@ -280,7 +281,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
-                    $scope.loadMoreEmpty = true;
+                    $scope.loadMoreHidden = true;
                     return false;
                 }
                 else {
@@ -288,9 +289,38 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                         $scope.galleryImages.push(value);
                         if ($scope.galleryImages.length >= 1000){
                             $scope.galleryImages.splice(0,1);
+                            $scope.loadPrevHidden = false;
                         }
                     });
                     $scope.checkLoad(response);
+                }
+            })
+    };
+
+    $scope.prevPage = function(){
+        var lowest = Math.min.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
+        var url = "/prev/" + lowest + "?count=100";
+        url += $scope.get_filters;
+
+        $http.get(url)
+            .success(function (response) {
+                if (response.data.length == 0){
+                    $scope.loadPrevHidden = true;
+                    return false;
+                }
+                else {
+                    angular.forEach(response.data, function(value){
+                        $scope.galleryImages.splice(0,0,value);
+                        if ($scope.galleryImages.length >= 1000){
+                            $scope.galleryImages.splice(999,1);
+                            $scope.loadMoreHidden = false;
+                        }
+                    });
+                   if (! response.expected){
+                        $scope.loadPrevHidden = true;
+                   } else {
+                        $scope.loadPrevHidden = false;
+                   }
                 }
             })
     };

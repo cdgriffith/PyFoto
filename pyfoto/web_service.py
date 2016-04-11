@@ -255,31 +255,6 @@ def filter_options(query, options, db):
     return query
 
 
-def tag_search(term, db, start_at=0, count=150):
-    if term == "untagged":
-        query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags == None).limit(
-            150).all()
-    else:
-        search_tags = term.split(",")
-        if not search_tags:
-            return []
-        query = db.query(File).join(File.tags).filter(Tag.tag.in_(search_tags)).group_by(File).having(
-                func.count(distinct(Tag.id)) == len(search_tags)).limit(count).all()
-
-    return query
-
-
-def rating_search(rating, db, greater=True, count=150):
-    if greater:
-        return db.query(File).filter(File.deleted == 0).filter(File.rating >= rating).limit(count).all()
-    else:
-        return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(count).all()
-
-
-def name_search(term, db, count=150):
-    return db.query(File).filter(File.deleted == 0).filter(File.name == term).limit(count).all()
-
-
 def directional_item(item_id, db, forward=True, tag=None, rating=0, count=1):
 
     query = db.query(File).order_by(File.id.asc() if forward else File.id.desc()).filter(

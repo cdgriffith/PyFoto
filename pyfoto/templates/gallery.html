@@ -1,12 +1,13 @@
 <div class="col-lg-10 col-sm-10 col-md-10 left-side">
     <div class="gallery">
+    <div class="more-area col-md-12" ng-click="prevPage()" ng-class="{hidden: loadPrevHidden}">Load Previous</div>
     <a href="#/image/{{image.id}}?{{get_filters}}" ng-repeat="image in galleryImages">
         <div class="gallery-image"
              ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
              ng-click="openImage(image.id)">
         </div>
     </a>
-    <div class="more-footer col-md-12" ng-click="nextPage()" ng-class="{hidden: loadMoreEmpty}">Load More</div>
+    <div class="more-area col-md-12" ng-click="nextPage()" ng-class="{hidden: loadMoreHidden}">Load More</div>
     </div>
 </div>
 
