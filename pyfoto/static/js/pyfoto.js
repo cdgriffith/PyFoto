@@ -379,20 +379,25 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $scope.deleteImage = function(){
         $http.delete("/file/" + $scope.image_id)
               .success(function (response) {
-                    //TODO if there is no next item, go to previous.
-                    $scope.nextItem();
+                    $scope.nextItem(true);
                 });
 
     };
 
-    $scope.nextItem = function(){
+    $scope.nextItem = function(fallBack){
         var url = "/next/" + $scope.image_id + "?count=1";
         url += $scope.get_filters;
+        if (fallBack === undefined){
+            fallBack = false;
+        }
 
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
                     $scope.scrollOff();
+                    if (fallBack){
+                        $scope.prevItem();
+                    }
                 }
                 else {
                     var filters = $scope.get_filters;
