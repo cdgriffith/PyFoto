@@ -226,17 +226,27 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.toggleSearchTag = function(tag){
 
         if ("tags" in $scope.globals.currentFilters){
-
-            var pos = $scope.globals.currentFilters.tags.indexOf(tag.tag);
-            if (pos >= 0){
-                $scope.globals.currentFilters.tags.splice(pos, 1);
-                if ($scope.globals.currentFilters.tags.length == 0){
-                    $location.url($location.path());
-                    return true;
-                }
-            } else {
+            if (tag.tag == "untagged") {
+                $scope.globals.currentFilters.tags.length = 0;
                 $scope.globals.currentFilters.tags.push(tag.tag);
             }
+            else {
+                var pos = $scope.globals.currentFilters.tags.indexOf(tag.tag);
+                if (pos >= 0){
+                    $scope.globals.currentFilters.tags.splice(pos, 1);
+                    if ($scope.globals.currentFilters.tags.length == 0){
+                        $location.url($location.path());
+                        return true;
+                    }
+                } else {
+                    var untagged_pos = $scope.globals.currentFilters.tags.indexOf("untagged");
+                    if (untagged_pos >=0){
+                        $scope.globals.currentFilters.tags.splice(untagged_pos, 1);
+                    }
+                    $scope.globals.currentFilters.tags.push(tag.tag);
+                }
+            }
+
             $location.url('/search').search({search: $scope.globals.currentFilters.tags.join(), search_type: "tags"});
         } else {
             $location.url('/search').search({search: tag.tag, search_type: "tags"});
