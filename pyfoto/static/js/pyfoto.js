@@ -365,9 +365,12 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
         $http.post("/file/" + $scope.image_id + "/tag/" + $scope.tagInput, {})
         .success(function (response) {
-                var newtag = {tag: $scope.tagInput, private: 0, highlight: true};
-                $scope.global.tags.push(newtag);
-                $scope.tagInput = "";
+                // TODO this should work and doesn't, workaround below
+                //var newtag = {tag: $scope.tagInput, private: 0, highlight: true};
+                //$scope.global.tags.push(newtag);
+
+                location.reload();
+
             });
     };
 

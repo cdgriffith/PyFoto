@@ -165,6 +165,40 @@ def add_tag_route(tag, db):
     return {}
 
 
+@app.route("/tag/<tag>", method="DELETE")
+def delete_tag_route(tag, db):
+    return delete_tag(tag, db)
+
+
+def delete_tag(tag, db):
+        tag = tag.strip().lower()
+        if tag == "untagged":
+            return {"error": True, "message": "Can't do that dave"}
+        try:
+            tag_item = db.query(Tag).filter(Tag.tag == tag).one()
+        except NoResultFound:
+            return {"error": True, "message": "Tag {} does not exist".format(tag)}
+
+        query = db.query(File).join(File.tags).filter(Tag.tag == tag).all()
+
+        for file in query:
+            file.tags.remove(tag_item)
+
+        db.query(Tag).filter(Tag.tag == tag).delete()
+
+        return {"error": False}
+
+
+@app.route("/tag/<tag>/count")
+def count_tags(tag, db):
+    if tag == "untagged":
+        count = db.query(File).filter(File.deleted == 0).filter(File.tags == None).count()
+    else:
+        the_tag = db.query(Tag).filter(Tag.tag == tag).one()
+        count = db.query(File).filter(File.deleted == 0).filter(File.tags.contains(the_tag)).count()
+    return {"count": count}
+
+
 def add_tag(tag, options, db):
     try:
         tag_item = db.query(Tag).filter(Tag.tag == tag).one()
@@ -223,7 +257,10 @@ def tag_search(term, db, start_at=0):
 
 
 def rating_search(rating, db, greater=True):
-    return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(150).all()
+    if greater:
+        return db.query(File).filter(File.deleted == 0).filter(File.rating >= rating).limit(150).all()
+    else:
+        return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(150).all()
 
 
 def name_search(term, db):
