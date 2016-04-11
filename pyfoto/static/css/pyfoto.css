@@ -143,29 +143,6 @@ body {
     cursor: pointer;
 }
 
-.right-image {
-    background: #000;
-    height: 100%;
-    opacity: 0.0;
-    color: #fff;
-    font-size: 44px;
-    align-content: center;
-    display: -webkit-flexbox;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-flex-align: center;
-    -ms-flex-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    justify-content: center;
-}
-
-.right-image:hover {
-    opacity: .5;
-    cursor: pointer;
-}
-
 .more-footer {
     text-align: center;
     height: 50px;

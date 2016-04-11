@@ -13,7 +13,7 @@ database. This allows for fast access during searches and prevents duplicate pho
 > Python 3 only
 
 > Pillow is a requirement that may require additional libraries,
-> refer to (their documentation)[http://pillow.readthedocs.org/en/3.0.x/installation.html] for help.
+> refer to [their documentation](http://pillow.readthedocs.org/en/3.0.x/installation.html) for help.
 
 PyFoto is currently in development. Do NOT install to your main system. There will be unmigrated DB changes
 as well as API switches that will completely screw you over if you do. Instead, simply download the entire package
