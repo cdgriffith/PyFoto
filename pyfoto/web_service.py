@@ -54,13 +54,15 @@ def static_image(filename, db):
 def get_items(db):
     options = bottle.request.query.decode()
     count = int(options.get("count", 150))
-    try:
-        files = db.query(File).filter(File.deleted == False).filter(
+    query = db.query(File).filter(File.deleted == False).filter(
             File.id >= int(options.get('start_at', 0))).order_by(
-            File.id.asc()).limit(count).all()
+            File.id.asc())
+    total = query.count()
+    try:
+        files = query.limit(count).all()
     except NoResultFound:
-        return {"data": []}
-    return prepare_file_items(files, app.settings, expected=count)
+        return {"data": [], "total": 0}
+    return prepare_file_items(files, app.settings, expected=count, total=total)
 
 
 @app.route("/file/<file_id>")
@@ -219,7 +221,7 @@ def add_tag(tag, options, db):
     return tag_item
 
 
-def prepare_file_items(query_return, settings, expected=None):
+def prepare_file_items(query_return, settings, expected=None, total=None):
     item_list = []
     for item in query_return:
         if item.deleted:
@@ -245,6 +247,8 @@ def prepare_file_items(query_return, settings, expected=None):
     return_data = {"data": item_list}
     if isinstance(expected, int) and expected > 0:
         return_data['expected'] = expected == len(item_list)
+    if isinstance(total, int):
+        return_data['total'] = total
     return return_data
 
 
@@ -258,7 +262,7 @@ def filter_options(query, options, db):
 def directional_item(item_id, db, forward=True, tag=None, rating=0, count=1):
 
     query = db.query(File).order_by(File.id.asc() if forward else File.id.desc()).filter(
-            File.deleted == 0).filter(File.id > int(item_id) if forward else File.id < int(item_id))
+            File.deleted == 0)
 
     if tag and "untagged" in tag:
         query = query.filter(File.tags == None)
@@ -270,9 +274,11 @@ def directional_item(item_id, db, forward=True, tag=None, rating=0, count=1):
     elif rating:
         query = query.filter(File.rating == rating)
 
-    query = query.limit(count).all()
+    total = query.count()
 
-    return prepare_file_items(query, app.settings, expected=count)
+    query = query.filter(File.id > int(item_id) if forward else File.id < int(item_id)).limit(count).all()
+
+    return prepare_file_items(query, app.settings, expected=count, total=total)
 
 
 @app.route("/next/<item_id>")

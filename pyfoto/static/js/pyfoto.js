@@ -175,6 +175,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.image_id = 0;
     $scope.loadMoreHidden = false;
     $scope.loadPrevHidden = true;
+    $scope.totalItems = 0;
 
     $scope.searchRating = 0;
 
@@ -209,6 +210,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                     $scope.galleryImages = response.data;
                     $scope.globals.currentFilters = {};
                     $scope.checkLoad(response);
+                    $scope.totalItems = response.total;
                 });
 
     } else if ("string" in $scope.globals.currentFilters) {
@@ -217,17 +219,20 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
             .success(function (response) {
                 $scope.galleryImages = response.data;
                 $scope.checkLoad(response);
+                $scope.totalItems = response.total;
             });
     } else if ("rating" in $scope.globals.currentFilters) {
         $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&" + $scope.start_at_string + "&search_type=rating")
             .success(function (response) {
                 $scope.galleryImages = response.data;
                 $scope.checkLoad(response);
+                $scope.totalItems = response.total;
             });
     } else if ("tags" in $scope.globals.currentFilters) {
         $http.get("/search?search=" + $scope.globals.currentFilters.tags.join() + "&" + $scope.start_at_string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
+                $scope.totalItems = response.total;
                 $scope.checkLoad(response);
                 angular.forEach($scope.globals.currentFilters.tags, function(tag_name){
                     $rootScope.highlightTag(tag_name);
@@ -292,6 +297,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                             $scope.loadPrevHidden = false;
                         }
                     });
+                    $scope.totalItems = response.total;
                     $scope.checkLoad(response);
                 }
             })
@@ -316,6 +322,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                             $scope.loadMoreHidden = false;
                         }
                     });
+                    $scope.totalItems = response.total;
                    if (! response.expected){
                         $scope.loadPrevHidden = true;
                    } else {
