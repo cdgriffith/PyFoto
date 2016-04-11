@@ -206,7 +206,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                 $scope.galleryImages = response.data;
             });
     } else if ("rating" in $scope.globals.currentFilters) {
-        $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&" + $scope.start_at_string)
+        $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&" + $scope.start_at_string + "&search_type=rating")
             .success(function (response) {
                 $scope.galleryImages = response.data;
             });

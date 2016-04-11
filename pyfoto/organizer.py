@@ -257,11 +257,11 @@ class Organize:
                 item.tags = []
         self.session.commit()
 
-    def pull_edit(self, move_dir=None, delete=True):
+    def pull_tag(self, tag="edit", move_dir=None, delete=True):
         if not move_dir:
-            move_dir = os.path.join(self.config.storage_directory, os.path.pardir, "pyfoto_edit")
+            move_dir = os.path.join(self.config.storage_directory, os.path.pardir, "pyfoto_{}".format(tag))
         self.ensure_exists(move_dir)
-        all_edits = self.session.query(File).filter(File.tags.any(Tag.tag == "edit")).all()
+        all_edits = self.session.query(File).filter(File.tags.any(Tag.tag == tag)).all()
         logger.info("{} edited files about to be processed".format(len(all_edits)))
         for item in all_edits:
             if item.path and os.path.exists(os.path.join(self.config.storage_directory, item.path)):
