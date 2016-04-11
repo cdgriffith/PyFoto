@@ -106,14 +106,15 @@ pyfotoApp.run(function($rootScope, $location, $http) {
 
     $rootScope.getFilters = function(){
        var url = "&";
-        if (angular.equals({}, $rootScope.globals.currentFilters)){
+        if (angular.equals({}, $rootScope.globals.currentFilters)) {
             return url;
+        }
+        else if ("rating" in $rootScope.globals.currentFilters){
+            url += "search="+ $rootScope.globals.currentFilters["rating"] + "&searchType=rating";
         } else if ("tags" in $rootScope.globals.currentFilters){
             url += "search="+ $rootScope.globals.currentFilters.tags.join() + "&searchType=tag";
         } else if ("string" in $rootScope.globals.currentFilters){
             url += "search="+ $rootScope.globals.currentFilters["string"]  + "&searchType=string";
-        } else if ("rating" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters["rating"] + "&searchType=rating";
         }
         return url;
     };
@@ -121,12 +122,12 @@ pyfotoApp.run(function($rootScope, $location, $http) {
     $rootScope.paramFilters = function(){
         if (angular.equals({}, $rootScope.globals.currentFilters)){
             return {};
+        } else if ("rating" in $rootScope.globals.currentFilters){
+            return {search: $rootScope.globals.currentFilters["rating"], searchType: "rating" };
         } else if ("tags" in $rootScope.globals.currentFilters){
             return {search: $rootScope.globals.currentFilters["tags"], searchType: "tag"};
         } else if ("string" in $rootScope.globals.currentFilters){
             return {search: $rootScope.globals.currentFilters["string"], searchType: "string"};
-        } else if ("rating" in $rootScope.globals.currentFilters){
-            return {search: $rootScope.globals.currentFilters["rating"], searchType: "rating" };
         }
         return {};
     };
@@ -478,7 +479,21 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     $scope.$on('$destroy', function iVeBeenDismissed() {
         $scope.scrollOff();
-    })
+    });
+
+    $scope.zoomIn = function(){
+        $('.alt-view').removeClass('hidden');
+        $('.main-view').addClass('hidden');
+
+    };
+
+
+    $scope.zoomOut = function(){
+
+        $('.alt-view').addClass('hidden');
+        $('.main-view').removeClass('hidden');
+
+    };
 
 }]);
 

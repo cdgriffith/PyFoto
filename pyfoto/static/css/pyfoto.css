@@ -77,6 +77,14 @@ body {
     overflow-y: scroll;
 }
 
+.zoom {
+    cursor: zoom-in;
+}
+
+.contain {
+    background-size: contain;
+}
+
 .gallery-image {
     width: 150px;
     height: 150px;
@@ -89,7 +97,6 @@ body {
 
 .main-image {
     height: 100%;
-    background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
 }
@@ -105,7 +112,7 @@ body {
     margin-bottom: 5px;
 }
 
-.left-image {
+.selector {
     background: #000;
     height: 100%;
     opacity: 0.0;
@@ -121,10 +128,17 @@ body {
     -webkit-align-items: center;
     align-items: center;
     justify-content: center;
-
 }
 
-.left-image:hover {
+.max-height {
+    height: 100%;
+}
+
+.max-width {
+    width: 100%;
+}
+
+.selector:hover {
     opacity: .5;
     cursor: pointer;
 }
@@ -228,4 +242,10 @@ ul.rating {
 .full-scale {
     width: 100%;
     height: 100%;
+}
+
+.alt-view {
+    overflow-x: auto;
+    overflow-y: auto;
+    cursor: zoom-out;
 }
