@@ -6,7 +6,7 @@
              ng-click="openImage(image.id)">
         </div>
     </a>
-    <div class="more-footer col-md-12" ng-click="nextPage()">Load More</div>
+    <div class="more-footer col-md-12" ng-click="nextPage()" ng-class="{hidden: loadMoreEmpty}">Load More</div>
     </div>
 </div>
 
@@ -18,11 +18,15 @@
     <div class="star-rating" star-rating rating-value="searchRating"
          data-max="5" on-rating-selected="performRatingSearch(rating)"></div>
 
+
     <div class="tag-cloud">
         <h4 class="header">Search Tags</h4>
             <span ng-repeat="tag in globals.tags" ng-click="toggleSearchTag(tag)" class="tag"  ng-class="{highlight: tag.highlight==true}" >
                 {{tag.tag}}</span>
+    </div>
 
+    <div class="count" style="color:white;">
+        Showing <span ng-bind="galleryImages.length"></span> images
     </div>
 
 </div>

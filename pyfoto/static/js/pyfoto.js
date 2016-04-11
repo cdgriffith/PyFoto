@@ -173,6 +173,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.globals = $rootScope.globals;
     $scope.current_page = "search";
     $scope.image_id = 0;
+    $scope.loadMoreEmpty = false;
 
     $scope.searchRating = 0;
 
@@ -191,13 +192,23 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     $scope.start_at_string =  "start_at=" + $scope.start_at;
 
+    $scope.checkLoad = function(response){
+        if (! response.expected){
+            $scope.loadMoreEmpty = true;
+        } else {
+            $scope.loadMoreEmpty = false;
+        }
+    }
+
     if(! ("string" in $scope.globals.currentFilters) &&
         ! ("rating" in $scope.globals.currentFilters) &&
         ! ("tags" in $scope.globals.currentFilters)){
             $http.get("/file?" + $scope.start_at_string)
               .success(function (response) {
+                  console.log(response);
                     $scope.galleryImages = response.data;
                     $scope.globals.currentFilters = {};
+                    $scope.checkLoad(response);
                 });
 
     } else if ("string" in $scope.globals.currentFilters) {
@@ -205,16 +216,19 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         $http.get("/search?search=" + $scope.globals.currentFilters.string + "&" + $scope.start_at_string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
+                $scope.checkLoad(response);
             });
     } else if ("rating" in $scope.globals.currentFilters) {
         $http.get("/search?search=" + $scope.globals.currentFilters.rating + "&" + $scope.start_at_string + "&search_type=rating")
             .success(function (response) {
                 $scope.galleryImages = response.data;
+                $scope.checkLoad(response);
             });
     } else if ("tags" in $scope.globals.currentFilters) {
         $http.get("/search?search=" + $scope.globals.currentFilters.tags.join() + "&" + $scope.start_at_string)
             .success(function (response) {
                 $scope.galleryImages = response.data;
+                $scope.checkLoad(response);
                 angular.forEach($scope.globals.currentFilters.tags, function(tag_name){
                     $rootScope.highlightTag(tag_name);
                 });
@@ -267,6 +281,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         $http.get(url)
             .success(function (response) {
                 if (response.data.length == 0){
+                    $scope.loadMoreEmpty = true;
                     return false;
                 }
                 else {
@@ -276,6 +291,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                             $scope.galleryImages.splice(0,1);
                         }
                     });
+                    $scope.checkLoad(response);
                 }
             })
     };

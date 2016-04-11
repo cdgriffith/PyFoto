@@ -53,12 +53,14 @@ def static_image(filename, db):
 @app.route("/file")
 def get_items(db):
     options = bottle.request.query.decode()
+    count = int(options.get("count", 150))
     try:
-        files = db.query(File).filter(File.id >= int(options.get('start_at', 0))).order_by(File.id.asc()).limit(
-            int(options.get("count", 150))).all()
+        files = db.query(File).filter(File.deleted == False).filter(
+            File.id >= int(options.get('start_at', 0))).order_by(
+            File.id.asc()).limit(count).all()
     except NoResultFound:
         return {"data": []}
-    return prepare_file_items(files, app.settings)
+    return prepare_file_items(files, app.settings, expected=count)
 
 
 @app.route("/file/<file_id>")
@@ -210,7 +212,7 @@ def add_tag(tag, options, db):
     return tag_item
 
 
-def prepare_file_items(query_return, settings):
+def prepare_file_items(query_return, settings, expected=None):
     item_list = []
     for item in query_return:
         if item.deleted:
@@ -232,7 +234,11 @@ def prepare_file_items(query_return, settings):
                           "tags": [{"tag": x.tag, "private": bool(x.private)} for x in item.tags],
                           "thumbnail": item.thumbnail.replace("\\", "/"),
                           "rating": item.rating})
-    return {"data": item_list}
+
+    return_data = {"data": item_list}
+    if isinstance(expected, int) and expected > 0:
+        return_data['expected'] = expected == len(item_list)
+    return return_data
 
 
 def filter_options(query, options, db):
@@ -242,7 +248,7 @@ def filter_options(query, options, db):
     return query
 
 
-def tag_search(term, db, start_at=0):
+def tag_search(term, db, start_at=0, count=150):
     if term == "untagged":
         query = db.query(File).filter(File.id >= int(start_at)).filter(File.deleted == 0).filter(File.tags == None).limit(
             150).all()
@@ -251,20 +257,20 @@ def tag_search(term, db, start_at=0):
         if not search_tags:
             return []
         query = db.query(File).join(File.tags).filter(Tag.tag.in_(search_tags)).group_by(File).having(
-                func.count(distinct(Tag.id)) == len(search_tags)).limit(150).all()
+                func.count(distinct(Tag.id)) == len(search_tags)).limit(count).all()
 
     return query
 
 
-def rating_search(rating, db, greater=True):
+def rating_search(rating, db, greater=True, count=150):
     if greater:
-        return db.query(File).filter(File.deleted == 0).filter(File.rating >= rating).limit(150).all()
+        return db.query(File).filter(File.deleted == 0).filter(File.rating >= rating).limit(count).all()
     else:
-        return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(150).all()
+        return db.query(File).filter(File.deleted == 0).filter(File.rating == rating).limit(count).all()
 
 
-def name_search(term, db):
-    return db.query(File).filter(File.deleted == 0).filter(File.name == term).limit(150).all()
+def name_search(term, db, count=150):
+    return db.query(File).filter(File.deleted == 0).filter(File.name == term).limit(count).all()
 
 
 def directional_item(item_id, db, forward=True, terms=None, rating=0, count=1):
@@ -284,7 +290,7 @@ def directional_item(item_id, db, forward=True, terms=None, rating=0, count=1):
 
     query = query.limit(count).all()
 
-    return prepare_file_items(query, app.settings)
+    return prepare_file_items(query, app.settings, expected=count)
 
 
 @app.route("/next/<item_id>")
@@ -313,15 +319,16 @@ def prev_items(item_id, db):
 def search_request(db):
     options = bottle.request.query.decode()
     search_type = options.get("search_type", "tag")
+    count = int(options.get("count", 150))
 
     if search_type == "rating":
-        query = rating_search(int(options["search"]), db, greater=options.get("greater", True))
+        query = rating_search(int(options["search"]), db, greater=options.get("greater", True), count=count)
     elif search_type == "name":
         query = None
     else:
-        query = tag_search(options["search"], db, options.get('start_at', 0))
+        query = tag_search(options["search"], db, options.get('start_at', 0), count=count)
 
-    return prepare_file_items(query, app.settings)
+    return prepare_file_items(query, app.settings, expected=count)
 
 
 @app.route("/", method="GET")
