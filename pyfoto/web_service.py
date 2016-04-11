@@ -92,6 +92,8 @@ def update_item(file_id, db):
     if "description" in options:
         file.description = options['description']
 
+    file.last_updated = datetime.datetime.now()
+
     db.commit()
     return {"error": False}
 
@@ -104,6 +106,7 @@ def delete_item(file_id, db):
         return bottle.abort(404, "file not found")
 
     file.deleted = True
+    file.last_updated = datetime.datetime.now()
     db.commit()
 
     return {"error": False}
@@ -125,6 +128,7 @@ def add_tag_to_file(file_id, tag, db):
     else:
         if not (tag in file.tags):
             file.tags.append(tag)
+            file.last_updated = datetime.datetime.now()
             db.commit()
     return {}
 
@@ -145,6 +149,8 @@ def remove_tag_from_file(file_id, tag, db):
         file_item.tags.remove(tag_item)
     except ValueError:
         return {"error": True, "message": "That tag isn't associated with anything yet"}
+
+    file_item.last_updated = datetime.datetime.now()
 
     db.commit()
     return {"error": False}
@@ -185,6 +191,7 @@ def delete_tag(tag, db):
 
         for file in query:
             file.tags.remove(tag_item)
+            file.last_updated = datetime.datetime.now()
 
         db.query(Tag).filter(Tag.tag == tag).delete()
 
@@ -273,15 +280,15 @@ def name_search(term, db, count=150):
     return db.query(File).filter(File.deleted == 0).filter(File.name == term).limit(count).all()
 
 
-def directional_item(item_id, db, forward=True, terms=None, rating=0, count=1):
+def directional_item(item_id, db, forward=True, tag=None, rating=0, count=1):
 
     query = db.query(File).order_by(File.id.asc() if forward else File.id.desc()).filter(
             File.deleted == 0).filter(File.id > int(item_id) if forward else File.id < int(item_id))
 
-    if terms and "untagged" in terms:
+    if tag and "untagged" in tag:
         query = query.filter(File.tags == None)
-    elif terms:
-        search_tags = terms.split(",")
+    elif tag:
+        search_tags = tag.split(",")
         # Old Any search query = query.filter(File.tags.any(Tag.tag.in_(terms.split(" "))))
         query = query.join(File.tags).filter(Tag.tag.in_(search_tags)).group_by(File).having(
                 func.count(distinct(Tag.id)) == len(search_tags))
@@ -296,39 +303,26 @@ def directional_item(item_id, db, forward=True, terms=None, rating=0, count=1):
 @app.route("/next/<item_id>")
 def next_items(item_id, db):
     options = bottle.request.query.decode()
-    if options.get("searchType") == "rating":
-        return directional_item(item_id, db, True, rating=int(options.get("search")),
-                                count=int(options.get("count", 1)))
-    else:
-        return directional_item(item_id, db, True, terms=options.get("search"),
-                                count=int(options.get("count", 1)))
+    kwargs = {"count": int(options.get("count", 150))}
+    if "search" in options:
+        kwargs[options.get("search_type", "tag")] = options['search']
+    return directional_item(item_id, db, True, **kwargs)
 
 
 @app.route("/prev/<item_id>")
 def prev_items(item_id, db):
     options = bottle.request.query.decode()
-    if options.get("searchType") == "rating":
-        return directional_item(item_id, db, False, rating=int(options.get("search")),
-                                count=int(options.get("count", 1)))
-    else:
-        return directional_item(item_id, db, False, terms=options.get("search"),
-                                count=int(options.get("count", 1)))
+    kwargs = {"count": int(options.get("count", 150))}
+    if "search" in options:
+        kwargs[options.get("search_type", "tag")] = options['search']
+    return directional_item(item_id, db, False, **kwargs)
 
 
 @app.route("/search")
 def search_request(db):
     options = bottle.request.query.decode()
-    search_type = options.get("search_type", "tag")
-    count = int(options.get("count", 150))
-
-    if search_type == "rating":
-        query = rating_search(int(options["search"]), db, greater=options.get("greater", True), count=count)
-    elif search_type == "name":
-        query = None
-    else:
-        query = tag_search(options["search"], db, options.get('start_at', 0), count=count)
-
-    return prepare_file_items(query, app.settings, expected=count)
+    kwargs = {"count": int(options.get("count", 150)), options.get("search_type", "tag"): options['search']}
+    return directional_item(0, db, **kwargs)
 
 
 @app.route("/", method="GET")

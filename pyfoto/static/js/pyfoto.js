@@ -110,11 +110,11 @@ pyfotoApp.run(function($rootScope, $location, $http) {
             return url;
         }
         else if ("rating" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters["rating"] + "&searchType=rating";
+            url += "search="+ $rootScope.globals.currentFilters["rating"] + "&search_type=rating";
         } else if ("tags" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters.tags.join() + "&searchType=tag";
+            url += "search="+ $rootScope.globals.currentFilters.tags.join() + "&search_type=tag";
         } else if ("string" in $rootScope.globals.currentFilters){
-            url += "search="+ $rootScope.globals.currentFilters["string"]  + "&searchType=string";
+            url += "search="+ $rootScope.globals.currentFilters["string"]  + "&search_type=string";
         }
         return url;
     };
@@ -123,11 +123,11 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         if (angular.equals({}, $rootScope.globals.currentFilters)){
             return {};
         } else if ("rating" in $rootScope.globals.currentFilters){
-            return {search: $rootScope.globals.currentFilters["rating"], searchType: "rating" };
+            return {search: $rootScope.globals.currentFilters["rating"], search_type: "rating" };
         } else if ("tags" in $rootScope.globals.currentFilters){
-            return {search: $rootScope.globals.currentFilters["tags"], searchType: "tag"};
+            return {search: $rootScope.globals.currentFilters["tags"], search_type: "tag"};
         } else if ("string" in $rootScope.globals.currentFilters){
-            return {search: $rootScope.globals.currentFilters["string"], searchType: "string"};
+            return {search: $rootScope.globals.currentFilters["string"], search_type: "string"};
         }
         return {};
     };
@@ -205,7 +205,6 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         ! ("tags" in $scope.globals.currentFilters)){
             $http.get("/file?" + $scope.start_at_string)
               .success(function (response) {
-                  console.log(response);
                     $scope.galleryImages = response.data;
                     $scope.globals.currentFilters = {};
                     $scope.checkLoad(response);

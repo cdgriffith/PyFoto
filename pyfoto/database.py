@@ -35,6 +35,7 @@ class File(Base):
     description = Column(String, default="")
     rating = Column(Integer, default=0)
     ingested_date = Column(DateTime, default=func.now())
+    last_updated = Column(DateTime, default=func.now())
 
     tags = relationship("Tag", secondary=tag_ass_table)
 
