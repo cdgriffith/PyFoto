@@ -303,7 +303,7 @@ def prev_items(item_id, db):
 def search_request(db):
     options = bottle.request.query.decode()
     kwargs = {"count": int(options.get("count", 150)), options.get("search_type", "tag"): options['search']}
-    return directional_item(0, db, **kwargs)
+    return directional_item(int(options.get("start_at", 1)) - 1, db, **kwargs)
 
 
 @app.route("/", method="GET")
