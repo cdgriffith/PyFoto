@@ -11,8 +11,10 @@
         <div class="header-bar">
             <div class="site-title"><a href="/">PyFoto</a></div>
 
-            <div>
-                <form ng-submit="performSearch(searchInput)" class="perform-search form-inline">
+            <div class="user-menu glyphicon glyphicon-menu-hamburger"></div>
+
+            <div class="perform-search">
+                <form ng-submit="performSearch(searchInput)" class="form-inline">
                      <div class="form-group">
                         <label class="sr-only" for="searchInput">search</label>
                         <input id="searchInput" ng-model="searchInput" type="text"
@@ -21,6 +23,7 @@
                     <input class="hidden-submit" type="submit" />
                 </form>
             </div>
+
         </div>
 
         <div class="main-area full-scale">

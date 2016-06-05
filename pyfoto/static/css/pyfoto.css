@@ -24,11 +24,12 @@ body {
 }
 
 .site-title {
-    padding: 5px 5px;
-    font-size: 18px;
+    padding: 5px 10px;
+    font-size: 22px;
     color: white;
     width: 75px;
     float: left;
+    font-weight: bold;
 }
 
 .site-title a{
@@ -99,11 +100,30 @@ body {
     position: absolute;
     top: 0;
     bottom: 40px;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .zoom {
     cursor: zoom-in;
+}
+
+.user-menu {
+    padding: 5px 5px;
+    float: right;
+    width: 50px;
+    height: 40px;
+    font-size: 26px;
+}
+
+.user-menu:hover {
+    color: white;
+}
+
+.perform-search{
+    float: right;
+    width: 200px;
+    height: 40px;
+    padding: 5px 5px;
 }
 
 .contain {

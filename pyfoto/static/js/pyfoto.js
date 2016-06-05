@@ -154,21 +154,13 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         }
     };
 
-            $rootScope.performSearch = function(term) {
+    $rootScope.performSearch = function(term) {
+            $rootScope.searchInput = "";
             $location.url('/search').search('search', term);
         };
 
 
 });
-
-pyfotoApp.controller('searchController', ['$scope', '$http', '$routeParams', '$rootScope', '$location', function($scope, $http, $routeParams, $rootScope, $location) {
-        $scope.globals = $rootScope.globals;
-
-        $scope.performSearch = function(term) {
-            $location.url('/search').search('search', term);
-        };
-
-}]);
 
 pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
     $rootScope.setFilters($routeParams);
