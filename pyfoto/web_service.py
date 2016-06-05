@@ -6,15 +6,19 @@ import os
 import logging
 import datetime
 import json
+import random
+from functools import wraps
+import hashlib
 
 import bottle
+from pbkdf2 import crypt
 from bottle.ext import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func, distinct
 
 from pyfoto.organizer import Organize
-from pyfoto.database import File, Tag, Base
+from pyfoto.database import File, Tag, Base, Users, Auth
 from pyfoto.config import get_config, get_stream_logger
 
 logger = get_stream_logger('web_service')
@@ -25,6 +29,76 @@ bottle.TEMPLATE_PATH.append(os.path.join(root, "templates"))
 
 app.settings = {}
 app.org = None
+
+
+def auth(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print(args, kwargs)
+        token = bottle.request.get_cookie('auth_token')
+        if not token:
+            logger.debug("No token provided for request")
+            return bottle.redirect("/", 405)
+        try:
+            # Last arg should be 'db'
+            auth_token = args[-1:].query(Auth).filter(Auth.token == token).one()
+        except NoResultFound:
+            logger.debug("No corresponding auth token found")
+            return bottle.redirect("/", 405)
+        else:
+            if auth_token.expires <= datetime.datetime.now():
+                logger.debug("Token expired")
+                return bottle.redirect("/", 405)
+
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def calc_pass(passwd, stored_pass):
+    return crypt(passwd, stored_pass, iterations=app.settings['pass_iterations'])
+
+
+def gen_token(username):
+    return hashlib.sha256('{}-{}-{}'.format(username,
+                                            datetime.datetime.now().isoformat(),
+                                            random.randint(0, 9)
+                                            ).encode("utf-8")).hexdigest()
+
+
+@app.route("/login")
+def login(db):
+    options = bottle.request.json
+
+    if "username" not in options or "password" not in options:
+        return {"error": True, "message": "Must provide all required login fields"}
+
+    try:
+        user = db.query(Users).filter(Users.username == options['username']).one()
+    except NoResultFound:
+        return {'error': True, "message": "Auth failed"}
+    else:
+        if user.pass_hash == calc_pass(options['password'], user.pass_hash):
+            token = gen_token(user.username)
+            new_auth = Auth(user_id=user.id, token=token)
+            db.add(new_auth)
+            db.commit()
+            return {'token': token, 'error': True}
+
+    return {'error': True, "message": "Auth failed"}
+
+
+@app.route("/logout")
+def logout(db):
+    token = bottle.request.get_cookie('auth_token')
+    if token:
+        db.query(Auth).filter(Auth.token == token).delete()
+    return {}
+
+
+@app.route("/test_route")
+@auth
+def test_route(db):
+    return {"here": True}
 
 
 # noinspection PyUnresolvedReferences
@@ -54,9 +128,9 @@ def static_image(filename, db):
 def get_items(db):
     options = bottle.request.query.decode()
     count = int(options.get("count", 150))
+    start_at = int(options.get('start_at')) if options.get('start_at') else 0
     query = db.query(File).filter(File.deleted == False).filter(
-            File.id >= int(options.get('start_at', 0))).order_by(
-            File.id.asc())
+            File.id >= start_at).order_by(File.id.asc())
     total = query.count()
     try:
         files = query.limit(count).all()

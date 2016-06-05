@@ -169,7 +169,7 @@ class Organize:
 
         save_config(self.config.to_dict())
 
-    def add_images_generator(self, directory: str, tags: tuple=()):
+    def add_images(self, directory: str, tags: tuple=()):
         """
         Go through a directory for all image files and ingest them.
 

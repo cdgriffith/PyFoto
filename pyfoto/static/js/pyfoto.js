@@ -154,6 +154,10 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         }
     };
 
+            $rootScope.performSearch = function(term) {
+            $location.url('/search').search('search', term);
+        };
+
 
 });
 
