@@ -14,6 +14,7 @@ import bottle
 from pbkdf2 import crypt
 from bottle.ext import sqlalchemy
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func, distinct
 
@@ -34,28 +35,33 @@ app.org = None
 def auth(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        print(args, kwargs)
-        token = bottle.request.get_cookie('auth_token')
+        token = bottle.request.get_cookie('auth_token', secret=app.settings.get('cookie_key', '1234'))
         if not token:
             logger.debug("No token provided for request")
-            return bottle.redirect("/", 405)
+            return {"error": True, "message": "Access Denied"}
+        engine = create_engine(app.settings.connect_string, echo=False)
+        session = sessionmaker(bind=engine)
+        db = session()
         try:
             # Last arg should be 'db'
-            auth_token = args[-1:].query(Auth).filter(Auth.token == token).one()
+            auth_token = db.query(Auth).filter(Auth.token == token).one()
         except NoResultFound:
             logger.debug("No corresponding auth token found")
-            return bottle.redirect("/", 405)
+            return {"error": True, "message": "Access Denied"}
         else:
             if auth_token.expires <= datetime.datetime.now():
                 logger.debug("Token expired")
-                return bottle.redirect("/", 405)
-
-        return func(*args, **kwargs)
+                return {"error": True, "message": "Access Denied"}
+            else:
+                kwargs['db'] = db
+                return func(*args, **kwargs)
+        finally:
+            db.close()
     return wrapper
 
 
-def calc_pass(passwd, stored_pass):
-    return crypt(passwd, stored_pass, iterations=app.settings['pass_iterations'])
+def calc_pass(passwd, stored_pass=None):
+    return crypt(passwd, stored_pass, iterations=app.settings.pass_iterations)
 
 
 def gen_token(username):
@@ -65,7 +71,7 @@ def gen_token(username):
                                             ).encode("utf-8")).hexdigest()
 
 
-@app.route("/login")
+@app.route("/auth/login", method="POST")
 def login(db):
     options = bottle.request.json
 
@@ -82,17 +88,27 @@ def login(db):
             new_auth = Auth(user_id=user.id, token=token)
             db.add(new_auth)
             db.commit()
-            return {'token': token, 'error': True}
+            bottle.response.set_cookie('auth_token', token, secret=app.settings.get('cookie_key', '1234'), path="/")
+            return {'error': False, 'token': token}
 
     return {'error': True, "message": "Auth failed"}
 
 
-@app.route("/logout")
+@app.route("/auth/logout")
 def logout(db):
-    token = bottle.request.get_cookie('auth_token')
+    token = bottle.request.get_cookie('auth_token', secret=app.settings.get('cookie_key', '1234'))
     if token:
+        logger.info("Logout successful")
         db.query(Auth).filter(Auth.token == token).delete()
+    else:
+        logger.warning("Couldn't get cookie for logout")
     return {}
+
+
+def add_user(username, password, db):
+    new_user = Users(username=username, pass_hash=calc_pass(password))
+    db.add(new_user)
+    db.commit()
 
 
 @app.route("/test_route")
@@ -116,6 +132,7 @@ def static_template(template, db):
 
 # noinspection PyUnresolvedReferences
 @app.route("/item/<filename:path>")
+@auth
 def static_image(filename, db):
     if filename.startswith(app.settings.storage_directory):
         filename = filename[len(app.settings.storage_directory) + 1:]
@@ -125,6 +142,7 @@ def static_image(filename, db):
 
 
 @app.route("/file")
+@auth
 def get_items(db):
     options = bottle.request.query.decode()
     count = int(options.get("count", 150))
@@ -140,6 +158,7 @@ def get_items(db):
 
 
 @app.route("/file/<file_id>")
+@auth
 def get_item(file_id, db):
     try:
         file = db.query(File).filter(File.id == int(file_id)).one()
@@ -153,6 +172,7 @@ def get_item(file_id, db):
 
 
 @app.route("/file/<file_id>", method="PUT")
+@auth
 def update_item(file_id, db):
     options = bottle.request.json
 
@@ -175,6 +195,7 @@ def update_item(file_id, db):
 
 
 @app.route("/file/<file_id>", method="DELETE")
+@auth
 def delete_item(file_id, db):
     try:
         file = db.query(File).filter(File.id == int(file_id)).one()
@@ -189,6 +210,7 @@ def delete_item(file_id, db):
 
 
 @app.route("/file/<file_id>/tag/<tag>", method="POST")
+@auth
 def add_tag_to_file(file_id, tag, db):
     tag = tag.strip().lower()
     if tag == "untagged":
@@ -210,6 +232,7 @@ def add_tag_to_file(file_id, tag, db):
 
 
 @app.route("/file/<file_id>/tag/<tag>", method="DELETE")
+@auth
 def remove_tag_from_file(file_id, tag, db):
     tag = tag.strip().lower()
     if tag == "untagged":
@@ -233,6 +256,7 @@ def remove_tag_from_file(file_id, tag, db):
 
 
 @app.route("/tag")
+@auth
 def view_tags(db):
     tags = db.query(Tag).all()
     tag_list = []
@@ -243,6 +267,7 @@ def view_tags(db):
 
 
 @app.route("/tag/<tag>", method="POST")
+@auth
 def add_tag_route(tag, db):
     options = bottle.request.query.decode()
     add_tag(tag, options, db)
@@ -250,6 +275,7 @@ def add_tag_route(tag, db):
 
 
 @app.route("/tag/<tag>", method="DELETE")
+@auth
 def delete_tag_route(tag, db):
     return delete_tag(tag, db)
 
@@ -275,6 +301,7 @@ def delete_tag(tag, db):
 
 
 @app.route("/tag/<tag>/count")
+@auth
 def count_tags(tag, db):
     if tag == "untagged":
         count = db.query(File).filter(File.deleted == 0).filter(File.tags == None).count()
@@ -356,6 +383,7 @@ def directional_item(item_id, db, forward=True, tag=None, rating=0, count=1):
 
 
 @app.route("/next/<item_id>")
+@auth
 def next_items(item_id, db):
     options = bottle.request.query.decode()
     kwargs = {"count": int(options.get("count", 150))}
@@ -365,6 +393,7 @@ def next_items(item_id, db):
 
 
 @app.route("/prev/<item_id>")
+@auth
 def prev_items(item_id, db):
     options = bottle.request.query.decode()
     kwargs = {"count": int(options.get("count", 150))}
@@ -374,6 +403,7 @@ def prev_items(item_id, db):
 
 
 @app.route("/search")
+@auth
 def search_request(db):
     options = bottle.request.query.decode()
     kwargs = {"count": int(options.get("count", 150)), options.get("search_type", "tag"): options['search']}
@@ -383,6 +413,11 @@ def search_request(db):
 @app.route("/", method="GET")
 def index():
     return bottle.redirect("/template/index.html", 302)
+
+
+@app.route("/login", method="GET")
+def index():
+    return bottle.redirect("/template/login.html", 302)
 
 
 @app.hook('after_request')
@@ -417,6 +452,20 @@ def get_user_arguments():
     return args
 
 
+def first_time_setup(engine, settings):
+    session = sessionmaker(bind=engine)
+    db = session()
+
+    try:
+        db.query(Users).filter(Users.username == 'admin').one()
+    except NoResultFound:
+        add_user('admin', settings.default_admin_pass, db)
+        logger.info("Admin default password set to: {}, please update".format(
+            settings.default_admin_pass))
+    finally:
+        db.close()
+
+
 def main():
     args = get_user_arguments()
 
@@ -439,6 +488,8 @@ def main():
         commit=True,
         use_kwargs=False
     )
+
+    first_time_setup(engine, app.settings)
 
     app.install(plugin)
 

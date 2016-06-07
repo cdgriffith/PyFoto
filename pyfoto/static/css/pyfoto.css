@@ -47,7 +47,10 @@ body {
     border-top: #fff 1px solid;
     margin: 10px 0 0 0;
     padding: 5px 0 0 0;
+}
 
+.login-form{
+    padding: 10px;
 }
 
 .tag {

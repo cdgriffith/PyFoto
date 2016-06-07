@@ -92,14 +92,6 @@ pyfotoApp.run(function($rootScope, $location, $http) {
         });
     };
 
-    // This is here because we should only have to get all tags once, hopefully, kinda
-    $http.get("/tag")
-        .success(function (response) {
-            angular.forEach(response.data, function(value){
-                $rootScope.pushUniqueTag(value);
-            });
-        });
-
     $rootScope.pushUniqueTag({tag: "untagged", private: 0, highlight: false});
 
     // Ok, so, this is all kinda silly right now, but this is so it can be exampled for advnced searches later
@@ -162,8 +154,23 @@ pyfotoApp.run(function($rootScope, $location, $http) {
 
 });
 
+pyfotoApp.controller('loginController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
+    $rootScope.hideHeader = true;
+
+    $scope.login = function(username, password){
+        $http.post("/auth/login", {username: username, password: password})
+        .success(function (response){
+            console.log(response);
+            $rootScope.token = response.token;
+            $location.url('/search');
+        }).error(function (response){
+        });
+    };
+}]);
+
 pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
     $rootScope.setFilters($routeParams);
+    $rootScope.hideHeader = false;
     $scope.get_filters = $rootScope.getFilters();
     $scope.param_filters = $rootScope.paramFilters();
     $scope.globals = $rootScope.globals;
@@ -172,8 +179,21 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.loadMoreHidden = false;
     $scope.loadPrevHidden = true;
     $scope.totalItems = 0;
-
     $scope.searchRating = 0;
+    $http.defaults.headers.common.auth = $rootScope.token;
+    console.log($rootScope.token);
+
+    $http.get("/tag")
+        .success(function (response) {
+            if (response.error == true){
+                if(response.message == 'Access Denied'){
+                    window.location = '/template/forbidden.html';
+                }
+            }
+            angular.forEach(response.data, function (value) {
+                $rootScope.pushUniqueTag(value);
+            });
+        });
 
     if ("rating" in $scope.globals.currentFilters){
         $scope.searchRating = $scope.globals.currentFilters.rating;
@@ -196,7 +216,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         } else {
             $scope.loadMoreHidden = false;
         }
-    }
+    };
 
     if(! ("string" in $scope.globals.currentFilters) &&
         ! ("rating" in $scope.globals.currentFilters) &&
@@ -337,6 +357,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $scope.param_filters = $rootScope.paramFilters();
     $scope.globals = $rootScope.globals;
     $scope.current_page = "image";
+    $rootScope.hideHeader = false;
+    console.log($rootScope.token);
+    $http.defaults.headers.common.auth = $rootScope.token;
 
     $scope.image_id = $routeParams.imageId;
 
@@ -490,7 +513,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     };
 
 
-
     $scope.rateFunction = function(rating) {
 
         $http.put("/file/" + $scope.image_id, {rating: rating})
@@ -550,12 +572,9 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
     };
 
-
     $scope.zoomOut = function(){
-
         $('.alt-view').addClass('hidden');
         $('.main-view').removeClass('hidden');
-
     };
 
 }]);
@@ -573,5 +592,9 @@ pyfotoApp.config(['$routeProvider', function ($routeProvider) {
         .when('/image/:imageId', {
             templateUrl: '/template/image.html',
             controller: 'indexController'
+        })
+        .when('/login', {
+            templateUrl: '/template/login.html',
+            controller: 'loginController'
         })
 }]);

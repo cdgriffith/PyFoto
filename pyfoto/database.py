@@ -69,6 +69,6 @@ class Auth(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer)
     token = Column(String(128))
-    expires = Column(DateTime, default=func.now() + datetime.timedelta(hours=12))
+    expires = Column(DateTime, default=(datetime.datetime.utcnow() + datetime.timedelta(hours=12)))
 
 
