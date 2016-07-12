@@ -11,6 +11,7 @@ from functools import wraps
 import hashlib
 
 import bottle
+import reusables
 from pbkdf2 import crypt
 from bottle.ext import sqlalchemy
 from sqlalchemy import create_engine
@@ -28,7 +29,7 @@ app = bottle.Bottle()
 root = os.path.abspath(os.path.dirname(__file__))
 bottle.TEMPLATE_PATH.append(os.path.join(root, "templates"))
 
-app.settings = {}
+app.settings = reusables.Namespace()
 app.org = None
 
 
@@ -94,7 +95,7 @@ def login(db):
     return {'error': True, "message": "Auth failed"}
 
 
-@app.route("/auth/logout")
+@app.route("/auth/logout", method="POST")
 def logout(db):
     token = bottle.request.get_cookie('auth_token', secret=app.settings.get('cookie_key', '1234'))
     if token:
@@ -338,6 +339,7 @@ def prepare_file_items(query_return, settings, expected=None, total=None):
         item_list.append({"id": item.id,
                           "path": item.path.replace("\\", "/"),
                           "name": name,
+                          "extension": item.extension,
                           "filename": filename,
                           "width": item.width,
                           "height": item.height,

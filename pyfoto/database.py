@@ -18,6 +18,12 @@ tag_ass_table = Table('tag_association',
                       Column('tag_id', Integer, ForeignKey('tags.id')),
                       PrimaryKeyConstraint('file_id', 'tag_id'))
 
+album_ass_table = Table('album_association',
+                        Base.metadata,
+                        Column('file_id', Integer, ForeignKey('files.id')),
+                        Column('album_id', Integer, ForeignKey('album.id')),
+                        PrimaryKeyConstraint('file_id', 'album_id'))
+
 
 class File(Base):
 
@@ -40,6 +46,7 @@ class File(Base):
     last_updated = Column(DateTime, default=func.now())
 
     tags = relationship("Tag", secondary=tag_ass_table)
+    albums = relationship("Album", secondary=album_ass_table)
 
 
 class Tag(Base):
@@ -48,6 +55,16 @@ class Tag(Base):
 
     id = Column(Integer, primary_key=True)
     tag = Column(String(64))
+    description = Column(String(256), default="")
+    private = Column(Boolean, default=False)
+
+
+class Album(Base):
+
+    __tablename__ = 'album'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
     description = Column(String(256), default="")
     private = Column(Boolean, default=False)
 

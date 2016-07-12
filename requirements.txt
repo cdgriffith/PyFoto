@@ -4,3 +4,4 @@ pyyaml
 bottle-sqlalchemy
 pillow
 cherrypy
+pbkdf2

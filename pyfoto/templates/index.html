@@ -11,16 +11,28 @@
         <div class="header-bar" ng-hide="hideHeader">
             <div class="site-title"><a href="/">PyFoto</a></div>
 
-            <div class="user-menu glyphicon glyphicon-menu-hamburger"></div>
+            <div class="dropdown user-menu">
+              <button class="user-menu-button" type="button" id="user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                <span class="glyphicon glyphicon-menu-hamburger"></span>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="user-dropdown">
+                <li><a href="#/upload">Upload</a></li>
+                <li><a href="#/user">My Profile</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="#/logout">Logout</a></li>
+              </ul>
+            </div>
 
             <div class="perform-search">
                 <form ng-submit="performSearch(searchInput)" class="form-inline">
-                     <div class="form-group">
+
+                    <div class="input-group">
                         <label class="sr-only" for="searchInput">search</label>
-                        <input id="searchInput" ng-model="searchInput" type="text"
-                               placeholder="Search" />
-                     </div>
-                    <input class="hidden-submit" type="submit" />
+                        <input id="searchInput" class="form-control" ng-model="searchInput" type="text" placeholder="Search" />
+                              <span class="input-group-btn">
+                                <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-search"></span></button>
+                              </span>
+                    </div>
                 </form>
             </div>
 

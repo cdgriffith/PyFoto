@@ -156,12 +156,12 @@ pyfotoApp.run(function($rootScope, $location, $http) {
 
 pyfotoApp.controller('loginController', ['$scope', '$http', '$routeParams', '$rootScope', '$location',  function($scope, $http, $routeParams, $rootScope, $location) {
     $rootScope.hideHeader = true;
+    $http.post("/auth/logout",{});
 
     $scope.login = function(username, password){
         $http.post("/auth/login", {username: username, password: password})
         .success(function (response){
             console.log(response);
-            $rootScope.token = response.token;
             $location.url('/search');
         }).error(function (response){
         });
@@ -180,8 +180,6 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.loadPrevHidden = true;
     $scope.totalItems = 0;
     $scope.searchRating = 0;
-    $http.defaults.headers.common.auth = $rootScope.token;
-    console.log($rootScope.token);
 
     $http.get("/tag")
         .success(function (response) {
@@ -358,8 +356,6 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
     $scope.globals = $rootScope.globals;
     $scope.current_page = "image";
     $rootScope.hideHeader = false;
-    console.log($rootScope.token);
-    $http.defaults.headers.common.auth = $rootScope.token;
 
     $scope.image_id = $routeParams.imageId;
 
@@ -596,5 +592,16 @@ pyfotoApp.config(['$routeProvider', function ($routeProvider) {
         .when('/login', {
             templateUrl: '/template/login.html',
             controller: 'loginController'
+        })
+        .when('/logout', {
+            redirectTo: '/login'
+        })
+        .when('/user', {
+            templateUrl: '/template/user.html',
+            controller: 'userController'
+        })
+        .when('/upload', {
+            templateUrl: '/template/upload.html',
+            controller: 'uploadController'
         })
 }]);
