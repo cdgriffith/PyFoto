@@ -255,6 +255,7 @@ class Organize:
                 shutil.move(os.path.join(self.config.storage_directory, item.path), os.path.join(move_dir, "{}.{}".format(item.sha256, item.extension)))
                 item.path = None
                 item.tags = []
+                item.filename = ""
         self.session.commit()
 
     def pull_tag(self, tag="edit", move_dir=None, delete=True):
@@ -270,4 +271,5 @@ class Organize:
                     item.deleted = 1
                     item.tags = []
                     item.path = None
+                    item.filename = ""
         self.session.commit()

@@ -44,6 +44,7 @@ class File(Base):
     rating = Column(Integer, default=0)
     ingested_date = Column(DateTime, default=func.now())
     last_updated = Column(DateTime, default=func.now())
+    #file_type = Column(String(25))
 
     tags = relationship("Tag", secondary=tag_ass_table)
     albums = relationship("Album", secondary=album_ass_table)

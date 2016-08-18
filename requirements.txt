@@ -5,3 +5,4 @@ bottle-sqlalchemy
 pillow
 cherrypy
 pbkdf2
+pyYaml

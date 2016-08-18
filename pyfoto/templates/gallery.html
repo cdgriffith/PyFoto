@@ -1,18 +1,23 @@
 <div class="col-lg-10 col-sm-10 col-md-10 left-side">
     <div class="gallery">
     <div class="more-area col-md-12" ng-click="prevPage()" ng-class="{hidden: loadPrevHidden}">Load Previous</div>
+
     <a href="#/image/{{image.id}}?{{get_filters}}" ng-repeat="image in galleryImages" ng-hide="albumMode">
         <div class="gallery-image"
              ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
              ng-click="openImage(image.id)">
         </div>
     </a>
-    <div ng-repeat="image in galleryImages" ng-show="albumMode">
-        <div class="gallery-image"
+
+    <div ng-repeat="image in galleryImages" ng-show="albumMode" >
+        <div
+             class="gallery-image album-image"
+             ng-class="{'iselected': image.selected}"
              ng-style="{'background-image': 'url(/item/' + image.thumbnail + ')'}"
-             ng-click="openImage(image.id)">
+             ng-click="selectImage(image); getSelected();">
         </div>
     </div>
+
     <div class="more-area col-md-12" ng-click="nextPage()" ng-class="{hidden: loadMoreHidden}">Load More</div>
     </div>
 </div>
@@ -22,14 +27,24 @@
     <div class="search-area" ng-include="'search.html'">
     </div>
 
-    <div class="star-rating" star-rating rating-value="searchRating"
+    <div class="star-rating" star-rating rating-value="searchRating" ng-hide="albumMode"
          data-max="5" on-rating-selected="performRatingSearch(rating)"></div>
 
 
-    <div class="tag-cloud">
+    <div class="tag-cloud" ng-hide="albumMode">
         <h4 class="header">Search Tags</h4>
             <span ng-repeat="tag in globals.tags" ng-click="toggleSearchTag(tag)" class="tag"  ng-class="{highlight: tag.highlight==true}" >
                 {{tag.tag}}</span>
+    </div>
+
+    <div class="tag-cloud" ng-show="albumMode">
+        <h4 class="header">Tags</h4>
+        <div style="width: 100%">
+            <input type="checkbox"  name="addordelete" checked ng-model="aorr" class="bootstrap-switch-mini" data-on-text="Add" data-off-text="Remove" data-size="mini" data-label-text="Action" />
+        </div>
+
+        <span ng-repeat="tag in globals.tags" class="tag" ng-bind="tag.tag"
+              ng-click="modifySelectedTag(tag)" ></span>
     </div>
 
     <div class="count" style="color:white;">

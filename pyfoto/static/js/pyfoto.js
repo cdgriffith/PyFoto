@@ -180,6 +180,9 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.loadPrevHidden = true;
     $scope.totalItems = 0;
     $scope.searchRating = 0;
+    //$scope.albumMode = true;
+    $scope.aorr = true;
+    $("[name='addordelete']").bootstrapSwitch();
 
     $http.get("/tag")
         .success(function (response) {
@@ -285,6 +288,23 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
             $location.url('/search').search({search: tag.tag, search_type: "tags"});
         }
 
+    };
+
+    $scope.selectImage = function(image){
+        if (image.selected){
+            image.selected = false;
+        } else {
+            image.selected = true;
+        }
+    };
+
+    $scope.getSelected = function(){
+        var arr = [];
+        angular.forEach($scope.galleryImages, function(value){
+            if(value.selected) {
+                arr.push(value);
+            }
+        })
     };
 
     $scope.performRatingSearch = function(rating) {
