@@ -10,7 +10,7 @@ function objIndexOf(myArray, searchTerm, property) {
 }
 
 
-var pyfotoApp = angular.module('pyfotoApp', ['ngRoute']);
+var pyfotoApp = angular.module('pyfotoApp', ['ngRoute', 'frapontillo.bootstrap-switch', 'ui.bootstrap-slider']);
 
 pyfotoApp.directive("starRating", function(){
 
@@ -180,9 +180,11 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.loadPrevHidden = true;
     $scope.totalItems = 0;
     $scope.searchRating = 0;
-    //$scope.albumMode = true;
+    $scope.albumMode = false;
+    $scope.albumSelected = false;
+    $scope.imageSize = 150;
     $scope.aorr = true;
-    $("[name='addordelete']").bootstrapSwitch();
+
 
     $http.get("/tag")
         .success(function (response) {
@@ -293,8 +295,12 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
     $scope.selectImage = function(image){
         if (image.selected){
             image.selected = false;
+            if ($scope.getSelected().length ==0){
+                $scope.albumSelected = false;
+            }
         } else {
             image.selected = true;
+            $scope.albumSelected = true;
         }
     };
 
@@ -304,7 +310,30 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
             if(value.selected) {
                 arr.push(value);
             }
+        });
+        return arr;
+    };
+
+    $scope.clearSelected = function(){
+        angular.forEach($scope.galleryImages, function(value){
+            value.selected = false;
         })
+    };
+
+    $scope.deleteSelected = function(){
+        console.log($scope.imageSize);
+        confirm("Are you sure you want to delete all these selected image?");
+    };
+
+    $scope.applyTagOption = function(tag){
+        var selected = $scope.getSelected();
+        angular.forEach(selected, function(value){
+            if (!$scope.aorr) {
+                console.log("delete");//$http.delete("/file/" + value.id + "/tag/" + tag.tag);
+            } else {
+                console.log(value.id);             //$http.post("/file/" + value.id + "/tag/" + tag.tag, {});
+            }
+        });
     };
 
     $scope.performRatingSearch = function(rating) {
