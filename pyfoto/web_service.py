@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import os
 import logging
 import datetime
-import json
+import reusables
 import random
 from functools import wraps
 import hashlib
@@ -20,7 +20,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.sql import func, distinct
 
 from pyfoto.organizer import Organize
-from pyfoto.database import File, Tag, Base, Users, Auth
+from pyfoto.database import File, Tag, Base, Users, Auth, Album
 from pyfoto.config import get_config, get_stream_logger
 
 logger = get_stream_logger('web_service')
@@ -321,6 +321,13 @@ def add_tag(tag, options, db):
         db.commit()
 
     return tag_item
+
+
+@app.route("/album/<album>")
+@auth
+def get_album(album, db):
+    # TODO undtested
+    return db.query(Album).filter(Album.name == album).one()
 
 
 def prepare_file_items(query_return, settings, expected=None, total=None):

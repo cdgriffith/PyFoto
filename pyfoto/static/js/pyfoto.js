@@ -94,7 +94,7 @@ pyfotoApp.run(function($rootScope, $location, $http) {
 
     $rootScope.pushUniqueTag({tag: "untagged", private: 0, highlight: false});
 
-    // Ok, so, this is all kinda silly right now, but this is so it can be exampled for advnced searches later
+    // Ok, so, this is all kinda silly right now, but this is so it can be exampled for advanced searches later
 
     $rootScope.getFilters = function(){
        var url = "&";
@@ -497,7 +497,7 @@ pyfotoApp.controller('indexController', ['$scope', '$http', '$routeParams', '$ro
 
         $http.post("/file/" + $scope.image_id + "/tag/" + $scope.tagInput, {})
         .success(function (response) {
-                // TODO this should work and doesn't, workaround below
+                // TODO this should work, but doesn't, workaround below
                 //var newtag = {tag: $scope.tagInput, private: 0, highlight: true};
                 //$scope.global.tags.push(newtag);
 
