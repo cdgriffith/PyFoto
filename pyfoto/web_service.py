@@ -326,8 +326,18 @@ def add_tag(tag, options, db):
 @app.route("/album/<album>")
 @auth
 def get_album(album, db):
-    # TODO undtested
+    # TODO undtested, need to list files?
     return db.query(Album).filter(Album.name == album).one()
+
+@app.route("/album/<album>/file/<file>", method="POST")
+@auth
+def add_file_to_album(album, file, db):
+    #TODO
+
+@app.route("/album/<album>/file/<file>", method="DELETE")
+@auth
+def remove_file_to_album(album, file, db):
+    #TODO
 
 
 def prepare_file_items(query_return, settings, expected=None, total=None):
