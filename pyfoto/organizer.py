@@ -59,6 +59,15 @@ class Organize:
             ext = "tif"
         return ext
 
+    @staticmethod
+    def file_type(file: str) -> str:
+        if file.endswith(reusables.exts.pictures):
+            return "image"
+        elif file.endswith(reusables.exts.video):
+            return "video"
+        else:
+            raise Exception("Not image or video")
+
     def file_info(self, file: str) -> tuple:
         """
         Returns file information.
@@ -141,9 +150,11 @@ class Organize:
 
         thumb_path = os.path.join("thumbs", ingest_path.rsplit(".")[0] + ".jpg")
         thumb_dir = os.path.join(self.config.storage_directory, thumb_path)
+        file_type = self.file_type(file)
 
         try:
-            width, height = self.create_thumbnail(full_path, thumb_dir)
+            width, height = self.create_thumbnail(full_path, thumb_dir,
+                                                  file_type=file_type)
         except Exception as err:
             logger.exception("Count not create thumbnail for {0}, will "
                              "redirect to main image. "
@@ -154,6 +165,7 @@ class Organize:
         new_file = File(path=ingest_path, sha256=sha256, extension=ext,
                         size=size, filename=os.path.basename(file),
                         thumbnail=thumb_path, width=width, height=height,
+                        #file_type=file_type,
                         tags=self._tag_strings_to_tags(tags))
 
         self.session.add(new_file)
@@ -169,7 +181,7 @@ class Organize:
 
         save_config(self.config.to_dict())
 
-    def add_images(self, directory: str, tags: tuple=()):
+    def add_images(self, directory: str, tags: list=()):
         """
         Go through a directory for all image files and ingest them.
 
@@ -182,15 +194,16 @@ class Organize:
         total = 0
         # I don't use enumerate because I have to return the number at the end
         for file in reusables.find_all_files_generator(
-                directory, ext=reusables.exts.pictures):
+                directory, ext=reusables.exts.pictures + reusables.exts.video):
             total += 1
             if total % 20 == 0.0:
                 logger.info("Ingested {0} images so far.".format(total))
 
             sha256, ext, size = self.file_info(file)
-            if (not self.config.ignore_duplicates and
+            if (self.config.ignore_duplicates and
                     self.already_ingested(sha256)):
-                logger.warning("file {0} already ingested".format(file))
+                logger.warning("file {0} already ingested - "
+                               "skipping".format(file))
                 continue
 
             self.config.file_inc += 1
@@ -222,7 +235,8 @@ class Organize:
         return total
 
     def create_thumbnail(self, file: str, out_path: str,
-                         width: int=250, height: int=250) -> tuple:
+                         width: int=250, height: int=250,
+                         file_type: str='image') -> tuple:
         """
         Create a thumbnail with Pillow then save it to the out_path. It will
         return the original image's width and height.
@@ -235,14 +249,15 @@ class Organize:
         """
 
         self.ensure_exists(os.path.dirname(out_path))
-        im = Image.open(file)
-        org_width, org_height = im.size
-        im.thumbnail((width, height))
-        try:
-            im.save(out_path, "JPEG")
-        except OSError:
-            im.convert('RGB').save(out_path, "JPEG")
-        return org_width, org_height
+        if file_type == 'image':
+            im = Image.open(file)
+            org_width, org_height = im.size
+            im.thumbnail((width, height))
+            try:
+                im.save(out_path, "JPEG")
+            except OSError:
+                im.convert('RGB').save(out_path, "JPEG")
+            return org_width, org_height
 
     def pull_deleted(self, move_dir=None):
         if not move_dir:

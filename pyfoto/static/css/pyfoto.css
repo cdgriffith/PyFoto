@@ -48,6 +48,7 @@ body {
     border-top: #fff 1px solid;
     margin: 10px 0 0 0;
     padding: 5px 0 0 0;
+    height: 100%;
 }
 
 .login-form{
@@ -92,10 +93,12 @@ body {
 }
 
 .tag-cloud {
-    margin: 2px;
+    margin: 2px 2px 50px 2px;
     padding: 0;
     width: 100%;
     word-wrap: normal;
+    height: 90%;
+    overflow-y: auto;
 }
 
 .gallery {

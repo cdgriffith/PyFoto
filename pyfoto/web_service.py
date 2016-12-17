@@ -36,7 +36,9 @@ app.org = None
 def auth(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        token = bottle.request.get_cookie('auth_token', secret=app.settings.get('cookie_key', '1234'))
+        token = bottle.request.get_cookie('auth_token',
+                                          secret=app.settings.get('cookie_key',
+                                                                  '1234'))
         if not token:
             logger.debug("No token provided for request")
             return {"error": True, "message": "Access Denied"}
@@ -77,7 +79,8 @@ def login(db):
     options = bottle.request.json
 
     if "username" not in options or "password" not in options:
-        return {"error": True, "message": "Must provide all required login fields"}
+        return {"error": True,
+                "message": "Must provide all required login fields"}
 
     try:
         user = db.query(Users).filter(Users.username == options['username']).one()
@@ -260,9 +263,7 @@ def remove_tag_from_file(file_id, tag, db):
 @auth
 def view_tags(db):
     tags = db.query(Tag).all()
-    tag_list = []
-    for tag in tags:
-        tag_list.append({"tag": tag.tag, "private": tag.private})
+    tag_list = [{"tag": tag.tag, "private": tag.private} for tag in tags]
     tag_list.sort(key=lambda x: x["tag"])
     return {"data": tag_list}
 
@@ -333,12 +334,13 @@ def get_album(album, db):
 @auth
 def add_file_to_album(album, file, db):
     #TODO
+    pass
 
 @app.route("/album/<album>/file/<file>", method="DELETE")
 @auth
 def remove_file_to_album(album, file, db):
     #TODO
-
+    pass
 
 def prepare_file_items(query_return, settings, expected=None, total=None):
     item_list = []
@@ -379,12 +381,14 @@ def filter_options(query, options, db):
     return query
 
 
-def directional_item(item_id, db, forward=True, tag=None, rating=0, count=1):
+def directional_item(item_id, db, forward=True, tag=None, name=None, rating=0, count=1):
 
     query = db.query(File).order_by(File.id.asc() if forward else File.id.desc()).filter(
             File.deleted == 0)
 
-    if tag and "untagged" in tag:
+    if name:
+        query = query.filter(File.filename.contains(name))
+    elif tag and "untagged" in tag:
         query = query.filter(File.tags == None)
     elif tag:
         search_tags = tag.split(",")
@@ -407,7 +411,7 @@ def next_items(item_id, db):
     options = bottle.request.query.decode()
     kwargs = {"count": int(options.get("count", 150))}
     if "search" in options:
-        kwargs[options.get("search_type", "tag")] = options['search']
+        kwargs[options.get("search_type", "name")] = options['search']
     return directional_item(item_id, db, True, **kwargs)
 
 
@@ -417,7 +421,7 @@ def prev_items(item_id, db):
     options = bottle.request.query.decode()
     kwargs = {"count": int(options.get("count", 150))}
     if "search" in options:
-        kwargs[options.get("search_type", "tag")] = options['search']
+        kwargs[options.get("search_type", "name")] = options['search']
     return directional_item(item_id, db, False, **kwargs)
 
 
@@ -425,7 +429,7 @@ def prev_items(item_id, db):
 @auth
 def search_request(db):
     options = bottle.request.query.decode()
-    kwargs = {"count": int(options.get("count", 150)), options.get("search_type", "tag"): options['search']}
+    kwargs = {"count": int(options.get("count", 150)), options.get("search_type", "name"): options['search']}
     return directional_item(int(options.get("start_at", 1)) - 1, db, **kwargs)
 
 

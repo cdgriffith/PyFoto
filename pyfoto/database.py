@@ -20,15 +20,9 @@ tag_ass_table = Table('tag_association',
 
 album_ass_table = Table('album_association',
                         Base.metadata,
-                        Column('album_id', Integer, ForeignKey('album.id')),
                         Column('file_id', Integer, ForeignKey('files.id')),
-                        PrimaryKeyConstraint('album_id', 'file_id'))
-
-user_ass_table = Table('user_association',
-                       Base.metadata,
-                       Column('album_id', Integer, ForeignKey('album.id')),
-                       Column('user_id', Integer, ForeignKey('user.id')),
-                       PrimaryKeyConstraint('album_id', 'user_id'))
+                        Column('album_id', Integer, ForeignKey('album.id')),
+                        PrimaryKeyConstraint('file_id', 'album_id'))
 
 
 class File(Base):
@@ -52,7 +46,7 @@ class File(Base):
     last_updated = Column(DateTime, default=func.now())
 
     tags = relationship("Tag", secondary=tag_ass_table)
-
+    albums = relationship("Album", secondary=album_ass_table)
 
 
 class Tag(Base):
@@ -72,10 +66,7 @@ class Album(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(64))
     description = Column(String(256), default="")
-    restricted = Column(Boolean, default=False)
-
-    allowed_access = relationship("Users", secondary=user_ass_table)
-    files = relationship("Files", secondary=album_ass_table)
+    private = Column(Boolean, default=False)
 
 
 class Users(Base):
