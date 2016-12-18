@@ -320,9 +320,19 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
         })
     };
 
+
     $scope.deleteSelected = function(){
-        console.log($scope.imageSize);
         confirm("Are you sure you want to delete all these selected image?");
+
+        for (var i = $scope.galleryImages.length - 1; i >= 0; i--) {
+            var value = $scope.galleryImages[i];
+            if(value.selected) {
+                $http.delete("/file/" + value.id).success(function (response) {
+                    var index = objIndexOf($scope.galleryImages, response.file_id, "id");
+                    $scope.galleryImages.splice(index, 1);
+                })
+            }
+        }
     };
 
     $scope.applyTagOption = function(tag){
@@ -343,7 +353,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     $scope.nextPage = function(){
         var highest = Math.max.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
-        var url = "/next/" + highest + "?count=100";
+        var url = "/next/" + highest + "?count=1000";
         url += $scope.get_filters;
 
         $http.get(url)
@@ -355,7 +365,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                 else {
                     angular.forEach(response.data, function(value){
                         $scope.galleryImages.push(value);
-                        if ($scope.galleryImages.length >= 1000){
+                        if ($scope.galleryImages.length >= 10000){
                             $scope.galleryImages.splice(0,1);
                             $scope.loadPrevHidden = false;
                         }
@@ -368,7 +378,7 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
 
     $scope.prevPage = function(){
         var lowest = Math.min.apply(Math,$scope.galleryImages.map(function(o){return o.id;}));
-        var url = "/prev/" + lowest + "?count=100";
+        var url = "/prev/" + lowest + "?count=1000";
         url += $scope.get_filters;
 
         $http.get(url)
@@ -380,8 +390,8 @@ pyfotoApp.controller('galleryController', ['$scope', '$http', '$routeParams', '$
                 else {
                     angular.forEach(response.data, function(value){
                         $scope.galleryImages.splice(0,0,value);
-                        if ($scope.galleryImages.length >= 1000){
-                            $scope.galleryImages.splice(999,1);
+                        if ($scope.galleryImages.length >= 10000){
+                            $scope.galleryImages.splice(9999,1);
                             $scope.loadMoreHidden = false;
                         }
                     });

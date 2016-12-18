@@ -149,7 +149,7 @@ def static_image(filename, db):
 @auth
 def get_items(db):
     options = bottle.request.query.decode()
-    count = int(options.get("count", 150))
+    count = int(options.get("count", 1000))
     start_at = int(options.get('start_at')) if options.get('start_at') else 0
     query = db.query(File).filter(File.deleted == False).filter(
             File.id >= start_at).order_by(File.id.asc())
@@ -210,7 +210,7 @@ def delete_item(file_id, db):
     file.last_updated = datetime.datetime.now()
     db.commit()
 
-    return {"error": False}
+    return {"error": False, "file_id": int(file_id)}
 
 
 @app.route("/file/<file_id>/tag/<tag>", method="POST")
@@ -313,6 +313,14 @@ def count_tags(tag, db):
     return {"count": count}
 
 
+@app.route("/tag/<tag>/merge")
+@auth
+def merge_tags(tag, db):
+    if tag == "untagged":
+        return {"error": True, "message": "Can't do that dave"}
+    items = bottle.request.json
+
+
 def add_tag(tag, options, db):
     try:
         tag_item = db.query(Tag).filter(Tag.tag == tag).one()
@@ -409,7 +417,7 @@ def directional_item(item_id, db, forward=True, tag=None, name=None, rating=0, c
 @auth
 def next_items(item_id, db):
     options = bottle.request.query.decode()
-    kwargs = {"count": int(options.get("count", 150))}
+    kwargs = {"count": int(options.get("count", 1000))}
     if "search" in options:
         kwargs[options.get("search_type", "name")] = options['search']
     return directional_item(item_id, db, True, **kwargs)
@@ -419,7 +427,7 @@ def next_items(item_id, db):
 @auth
 def prev_items(item_id, db):
     options = bottle.request.query.decode()
-    kwargs = {"count": int(options.get("count", 150))}
+    kwargs = {"count": int(options.get("count", 1000))}
     if "search" in options:
         kwargs[options.get("search_type", "name")] = options['search']
     return directional_item(item_id, db, False, **kwargs)
@@ -429,7 +437,7 @@ def prev_items(item_id, db):
 @auth
 def search_request(db):
     options = bottle.request.query.decode()
-    kwargs = {"count": int(options.get("count", 150)), options.get("search_type", "name"): options['search']}
+    kwargs = {"count": int(options.get("count", 1000)), options.get("search_type", "name"): options['search']}
     return directional_item(int(options.get("start_at", 1)) - 1, db, **kwargs)
 
 
@@ -502,6 +510,8 @@ def main():
         root_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
     engine = create_engine(app.settings.connect_string, echo=False)
+
+    Base.metadata.create_all(engine)
 
     plugin = sqlalchemy.Plugin(
         engine,
